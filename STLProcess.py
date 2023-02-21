@@ -31,7 +31,6 @@ def testInBounds(face,point):
     c = face[3]
     p = point
     # Distances are still represented as type 'iii'
-
     Dab = np.cross(np.subtract(p,a),np.subtract(p,b))/np.linalg.norm(np.subtract(b,a))
     Dbc = np.cross(np.subtract(p,b),np.subtract(p,c))/np.linalg.norm(np.subtract(c,b))
     Dca = np.cross(np.subtract(p,c),np.subtract(p,a))/np.linalg.norm(np.subtract(a,c))
@@ -43,3 +42,13 @@ def testInBounds(face,point):
 faces = loadBinarySTL('houseExa.stl')
 # print(faces)
 testInBounds(faces[2],np.array([1,1,1]))
+
+
+
+
+# Next todo:
+# Step 1: Figure out why distances can be negative
+# Step 2: Find better way of finding minimum distance
+# Step 3: Find where line from intersection point to closest line point makes 2nd intersection. (what line does the perpendicular line intersect with)
+# Step 4: Detect if intersection point is in triangle bound
+# Step 5: Profit
