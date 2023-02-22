@@ -32,7 +32,7 @@ def testInBounds(face,point):
     b = face[2]
     c = face[3]
     p = point
-
+    
     print(face)
     print(point)
 
