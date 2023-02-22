@@ -23,22 +23,22 @@ def loadBinarySTL(filename):
             stl.read(2)
     return(faces)
 
-def triLinInter(a,b,c,):
-
 # Test whether a point is in the bounds of a face triangle
 def testInBounds(face,point):
     # Calculate minimum distances of point to lines AB, BC, CA
-    a = face[1]
-    b = face[2]
-    c = face[3]
-    p = point
-    
-    print(face)
-    print(point)
+    A = face[1]
+    C = face[2]
+    D = face[3] 
+    B = point
+    o = np.add(A,(np.subtract(B,A))*((np.dot(np.cross(np.subtract(C,A),np.subtract(D,C)),np.cross(np.subtract(B,A),np.subtract(D,C))))/np.linalg.norm(np.cross(np.subtract(B,A),np.subtract(D,C)))**2))
+    print(o)
+    # print(face)
+    # print(point)
 
 faces = loadBinarySTL('houseExa.stl')
 # print(faces)
-testInBounds(faces[2],np.array([1,1,1]))
+# testInBounds(faces[2],np.array([1,1,1]))
+testInBounds([[0,0,1],np.array([0,0,0]),np.array([2,0,0]),np.array([1,1,0])],np.array([1,-1,0]))
 
 
 
