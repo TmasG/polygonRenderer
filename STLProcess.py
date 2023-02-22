@@ -32,9 +32,9 @@ def testInBounds(face,point):
     i = point
     # O is Where AI meets BC (Figure 2.1.1.15c)
     o = np.add(a,(np.subtract(i,a))*(np.dot(np.cross(np.subtract(b,a),np.subtract(c,b)),np.cross(np.subtract(i,a),np.subtract(c,b)))/np.linalg.norm(np.cross(np.subtract(i,a),np.subtract(c,b)))**2))
-    # Lambda for location of O on line BC (Figure 3.1.1.x)
+    # Lambda for location of O on line BC (Figure 3.1.1.y)
     OlamBC = (o[0]-b[0])/(c[0]-b[0])
-    # Mew for location of I on line AO (Figure 3.1.1.x)
+    # Mew for location of I on line AO (Figure 3.1.1.y)
     ImewAO = (i[0]-a[0])/(o[0]-a[0])
     # Check if O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
     result = 0<OlamBC and OlamBC<1 and 0<ImewAO and ImewAO<1
