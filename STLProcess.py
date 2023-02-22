@@ -26,26 +26,21 @@ def loadBinarySTL(filename):
 # Test whether a point is in the bounds of a face triangle
 def testInBounds(face,point):
     # Calculate minimum distances of point to lines AB, BC, CA
-    A = face[1]
-    C = face[2]
-    D = face[3] 
-    B = point
-    o = np.add(A,(np.subtract(B,A))*((np.dot(np.cross(np.subtract(C,A),np.subtract(D,C)),np.cross(np.subtract(B,A),np.subtract(D,C))))/np.linalg.norm(np.cross(np.subtract(B,A),np.subtract(D,C)))**2))
-    print(o)
-    # print(face)
-    # print(point)
+    a = face[1]
+    b = face[2]
+    c = face[3] 
+    i = point
+    # O is Where AI meets BC (Figure 2.1.1.15c)
+    o = np.add(a,(np.subtract(i,a))*(np.dot(np.cross(np.subtract(b,a),np.subtract(c,b)),np.cross(np.subtract(i,a),np.subtract(c,b)))/np.linalg.norm(np.cross(np.subtract(i,a),np.subtract(c,b)))**2))
+    # Lambda for location of O on line BC (Figure 3.1.1.x)
+    OlamBC = (o[0]-b[0])/(c[0]-b[0])
+    # Mew for location of I on line AO (Figure 3.1.1.x)
+    ImewAO = (i[0]-a[0])/(o[0]-a[0])
+    # Check if O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
+    result = 0<OlamBC and OlamBC<1 and 0<ImewAO and ImewAO<1
+    return(result)
 
 faces = loadBinarySTL('houseExa.stl')
 # print(faces)
 # testInBounds(faces[2],np.array([1,1,1]))
-testInBounds([[0,0,1],np.array([0,0,0]),np.array([2,0,0]),np.array([1,1,0])],np.array([1,-1,0]))
-
-
-
-
-# Next todo:
-# Step 1: Figure out why distances can be negative
-# Step 2: Find better way of finding minimum distance
-# Step 3: Find where line from intersection point to closest line point makes 2nd intersection. (what line does the perpendicular line intersect with)
-# Step 4: Detect if intersection point is in triangle bound
-# Step 5: Profit
+print(testInBounds([[0,0,1],np.array([-2,-2,0]),np.array([4,-2,0]),np.array([0,5,0])],np.array([1,6,0])))
