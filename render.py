@@ -2,6 +2,15 @@ import tfil
 import STLProcess
 import numpy as np
 import time
+from PIL import Image
+
+def saveImage(pixels):
+    img = Image.fromarray(pixels)
+    print(img.mode)
+    if img.mode != "rgb":
+        img = img.convert("RGB")
+    img.save(tfil.config["outputFileName"])
+
 def lineFaceInter(point,vector,face):
     N = face[0]
     d = face[4][0]
@@ -26,7 +35,7 @@ def renderShadow():
                     inter = True
                     break
             if not inter:
-                pixels[i][j] = 1
+                pixels[i][j] = 255
     return(pixels)
 
 a = time.time()
@@ -39,4 +48,5 @@ for i in pixels:
         if j==1:
             count+=1
 print(count)
+saveImage(pixels)
 # print(lineFaceInter(np.array([0,0,0]),np.array([0,1,0]),np.array([[0,1,0],[0,0,0],[0,0,0],[0,1,0],[4,0,0]])))
