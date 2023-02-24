@@ -6,7 +6,6 @@ from PIL import Image
 
 def saveImage(pixels):
     img = Image.fromarray(pixels)
-    print(img.mode)
     if img.mode != "rgb":
         img = img.convert("RGB")
     img.save(tfil.config["outputFileName"])
@@ -25,9 +24,10 @@ def renderShadow():
     for i in range(tfil.config["resolution"][0]):
         for j in range(tfil.config["resolution"][1]):
             # For pixel i,j:
-            focalPoint = np.array([0,-tfil.config["focalLength"],0])
+            focalPoint = np.array(tfil.config["focalTranslation"])
             # Vector of ray from focal point to pixel
             pixel = np.array([i-0.5*tfil.config["resolution"][0],0,j-0.5*tfil.config["resolution"][1]])
+            pixel = np.array([i,0,j])
             rayVector = np.subtract(focalPoint,pixel)
             inter = False
             for k in range(STLProcess.numFaces):
@@ -36,6 +36,7 @@ def renderShadow():
                     break
             if not inter:
                 pixels[i][j] = 255
+        print(i)
     return(pixels)
 
 a = time.time()
