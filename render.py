@@ -5,6 +5,7 @@ import time
 from PIL import Image
 
 def saveImage(pixels):
+    pixels[0][0] = 130
     img = Image.fromarray(pixels)
     if img.mode != "rgb":
         img = img.convert("RGB")

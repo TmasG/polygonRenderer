@@ -76,13 +76,12 @@ def testInBounds(face,point):
 
     # Mew for location of I on line AO (Figure 3.1.1.y)
     if o[0]!=a[0]:
-        # print ("Zero division error: Ox==Ax")
         ImewAO = (i[0]-a[0])/(o[0]-a[0])
     elif o[1]!=a[1]:
-        # print ("Zero division error: Oy==Ay")
+        # print ("Zero division error: Ox==Ax")
         ImewAO = (i[1]-a[1])/(o[1]-a[1])
     elif o[2]!=a[2]:
-        # print ("Zero division error: Oz==Az" + str(np.equal(o,a)))
+        # print ("Zero division error: Oy==Ay" + str(np.equal(o,a)))
         ImewAO = (i[2]-a[2])/(o[2]-a[2])
     else:
         print ("Zero division error: Coordinates O and A are the same")
