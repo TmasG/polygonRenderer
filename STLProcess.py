@@ -18,6 +18,7 @@ def objAdjustVertex(coords):
     return(newCoords)
 
 def objAdjustNormal(coords):
+    # Bug: Pretty sure this is wrong:
     newCoords = objScale(np.array(coords))
     return(newCoords)
 
