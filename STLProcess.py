@@ -14,7 +14,7 @@ def objScale(coords):
     return(coords)
 
 def objAdjustVertex(coords):
-    newCoords = objTranslate(objScale(np.array(coords)))
+    newCoords = objTranslate(objScale(np.array([coords[0],coords[1],coords[2]])))
     return(newCoords)
 
 def objAdjustNormal(coords):
@@ -90,7 +90,11 @@ def testInBounds(face,point):
     result = 0<OlamBC and OlamBC<1 and 0<ImewAO and ImewAO<1
     return(result)
 
-print(testInBounds(np.array([[0,0,1],[0,0,0],[5,0,0],[-1,6,0]]),np.array([0,2,0])))
+# print(testInBounds(np.array([[0,0,1],[0,0,0],[5,0,0],[-1,6,0]]),np.array([0,100,0])))
 
-faces = loadBinarySTL(tfil.config["stlFile"])
-# faces = np.array([])
+# faces = loadBinarySTL(tfil.config["stlFile"])
+# print(faces)
+numFaces = 1
+faces = np.array([[0,1,0],[0,30,-100],[0,30,100],[-100,30,100],[30,0,0]])
+print(testInBounds(faces,np.array([-1,30,0])))
+exit()

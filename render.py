@@ -5,7 +5,6 @@ import time
 from PIL import Image
 
 def saveImage(pixels):
-    pixels[0][0] = 130
     img = Image.fromarray(pixels)
     if img.mode != "rgb":
         img = img.convert("RGB")
@@ -16,9 +15,17 @@ def lineFaceInter(point,vector,face):
     d = face[4][0]
     P = point
     V = vector
-    x= (d-np.dot(N,P))/(np.dot(N,V))
+    x = (d-np.dot(N,P))/(np.dot(N,V))
     r = np.add(P,V*x)
+    # print(r,V,N)
     return(r)
+
+def switchXY(pixels):
+    newPixels = np.zeros((tfil.config["resolution"][1],tfil.config["resolution"][0]))
+    for i in range(tfil.config["resolution"][1]):
+        for j in range(tfil.config["resolution"][0]):
+            newPixels[i][j] = pixels[j][tfil.config["resolution"][1]-i-1]
+    return(newPixels)
 
 def renderShadow():
     pixels = np.zeros((tfil.config["resolution"][0],tfil.config["resolution"][1]))
@@ -28,8 +35,8 @@ def renderShadow():
             focalPoint = np.array(tfil.config["focalTranslation"])
             # Vector of ray from focal point to pixel
             pixel = np.array([i-0.5*tfil.config["resolution"][0],0,j-0.5*tfil.config["resolution"][1]])
-            pixel = np.array([i,0,j])
-            rayVector = np.subtract(focalPoint,pixel)
+            # pixel = np.array([i,0,j])
+            rayVector = np.subtract(pixel,focalPoint)
             inter = False
             for k in range(STLProcess.numFaces):
                 if STLProcess.testInBounds(STLProcess.faces[k],lineFaceInter(focalPoint,rayVector,STLProcess.faces[k])):
@@ -38,7 +45,8 @@ def renderShadow():
             if not inter:
                 pixels[i][j] = 255
         print(i)
-    return(pixels)
+    pixels[50][0] = 120
+    return(switchXY(pixels))
 
 a = time.time()
 pixels = renderShadow()
@@ -52,3 +60,8 @@ for i in pixels:
 print(count)
 saveImage(pixels)
 # print(lineFaceInter(np.array([0,0,0]),np.array([0,1,0]),np.array([[0,1,0],[0,0,0],[0,0,0],[0,1,0],[4,0,0]])))
+
+# Todo:
+# Test that lambda equation works
+# Go through render function and test each part 1 by 1
+# Fix render

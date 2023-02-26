@@ -1,10 +1,10 @@
 {"objScale":[1,1,1],
-"objTranslate":[1000000000,2000000000,0],
+"objTranslate":[0,300,0],
 "resolution":[100,100],
-"focalTranslation":[50,-60,50],
+"focalTranslation":[50,-100,50],
 "renderType":"perspective",
 "lightType":"plane",
 "lightPoint":[],
-"lightPlaneNorm":[0,0,1,0],
+"lightPlaneNorm":[0,1,0],
 "outputFileName":"renderTest.png",
 "stlFile":"star.stl"}
