@@ -17,6 +17,7 @@ def lineFaceInter(point,vector,face):
     V = vector
     x = (d-np.dot(N,P))/(np.dot(N,V))
     r = np.add(P,V*x)
+
     # print(r,V,N)
     return(r)
 
@@ -32,14 +33,14 @@ def renderShadow():
     for i in range(tfil.config["resolution"][0]):
         for j in range(tfil.config["resolution"][1]):
             # For pixel i,j:
-            focalPoint = np.array(tfil.config["focalTranslation"])
+            focalPoint = np.array(tfil.config["focalPoint"])
             # Vector of ray from focal point to pixel
             pixel = np.array([i-0.5*tfil.config["resolution"][0],0,j-0.5*tfil.config["resolution"][1]])
-            # pixel = np.array([i,0,j])
             rayVector = np.subtract(pixel,focalPoint)
             inter = False
             for k in range(STLProcess.numFaces):
-                if STLProcess.testInBounds(STLProcess.faces[k],lineFaceInter(focalPoint,rayVector,STLProcess.faces[k])):
+                intersection = lineFaceInter(focalPoint,rayVector,STLProcess.faces[k])
+                if STLProcess.testInBounds(STLProcess.faces[k],intersection):
                     inter = True
                     break
             if not inter:

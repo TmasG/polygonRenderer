@@ -14,7 +14,7 @@ def objScale(coords):
     return(coords)
 
 def objAdjustVertex(coords):
-    newCoords = objTranslate(objScale(np.array([coords[0],coords[1],coords[2]])))
+    newCoords = objTranslate(objScale(coords))
     return(newCoords)
 
 def objAdjustNormal(coords):
@@ -36,7 +36,7 @@ def loadBinarySTL(filename):
             # For each triangle (1.3.11.2)
             # Datatype 'i' is 4 bytes, datatype 'iii' is 12 bytes
             faces[i][0] = objAdjustNormal(struct.unpack('iii', stl.read(12))) # Normal vector
-            faces[i][1] = objAdjustVertex   (struct.unpack('iii', stl.read(12))) # Vertex 1
+            faces[i][1] = objAdjustVertex(struct.unpack('iii', stl.read(12))) # Vertex 1
             faces[i][2] = objAdjustVertex(struct.unpack('iii', stl.read(12))) # Vertex 2
             faces[i][3] = objAdjustVertex(struct.unpack('iii', stl.read(12))) # Vertex 3
             # d value for plane equation of v1.N=d, storing with triangle in  faces[i][4][0]
@@ -96,6 +96,11 @@ def testInBounds(face,point):
 # faces = loadBinarySTL(tfil.config["stlFile"])
 # print(faces)
 numFaces = 1
-faces = np.array([[0,1,0],[0,30,-100],[0,30,100],[-100,30,100],[30,0,0]])
-print(testInBounds(faces,np.array([-1,30,0])))
-exit()
+faces = np.array([[[0,1,0],[0,60,-100],[0,60,100],[-100,60,100],[60,0,0]]])
+for i in range(len(faces)):
+    faces[i][0] = objAdjustNormal(faces[i][0])
+    faces[i][1] = objAdjustVertex(faces[i][1])
+    faces[i][2] = objAdjustVertex(faces[i][2])
+    faces[i][3] = objAdjustVertex(faces[i][3])
+# print(testInBounds(faces,np.array([-1,30,0])))
+# exit()
