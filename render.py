@@ -15,9 +15,16 @@ def lineFaceInter(point,vector,face):
     d = face[4][0]
     P = point
     V = vector
-    x = (d-np.dot(N,P))/(np.dot(N,V)) 
-    r = np.add(P,V*x)
-    return(r)
+    if np.dot(N,V) == 0:
+        print("N perpendicular to V", str(N), str(V))
+        inter = False
+        r = [0,0,0]
+    else:
+        inter = True
+        x = (d-np.dot(N,P))/(np.dot(N,V)) 
+        r = np.add(P,V*x)
+    # returns if there is an intersection and the distance if so
+    return(inter,r)
 
 def switchXY(pixels):
     newPixels = np.zeros((tfil.config["resolution"][1],tfil.config["resolution"][0]))
@@ -37,7 +44,11 @@ def renderShadow():
             rayVector = np.subtract(pixel,focalPoint)
             for k in range(STLProcess.numFaces):
                 intersection = lineFaceInter(focalPoint,rayVector,STLProcess.faces[k])
-                if STLProcess.testInBounds(STLProcess.faces[k],intersection):
+                if not intersection[0]:
+                    # If no intersection with face then skip to next face
+                    continue
+                if STLProcess.testInBounds(STLProcess.faces[k],intersection[1]):
+                    # If face intersection is valid then set pixel
                     pixels[i][j] = 255
                     break
         print(i)
@@ -57,6 +68,5 @@ print(count)
 saveImage(pixels)
 
 # Todo:
-# Test that lambda equation works
-# Go through render function and test each part 1 by 1
-# Fix render
+# do boundary tests on loadBinarySTL.
+# fix loadBinarySTL

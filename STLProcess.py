@@ -22,7 +22,7 @@ def objAdjustVertex(coords):
     newCoords = objTranslate(objScale(objRotate(coords)))
     return(newCoords)
 
-# Loads STL unpacking the triangle vertexes stored as binary data.
+# Loads STL unpacking the triangle vertices stored as binary data.
 def loadBinarySTL(filename):
     global numFaces
     with open(filename, 'rb') as stl:
@@ -32,7 +32,7 @@ def loadBinarySTL(filename):
         numFaces = struct.unpack('i', stl.read(4))[0]
         print('Number of faces:' + str(numFaces))
         faces = np.zeros((numFaces,5,3))
-        for i in range(numFaces):
+        for i in range(numFaces): 
             # For each triangle (1.3.11.2)
             # Datatype 'i' is 4 bytes, datatype 'iii' is 12 bytes
             stl.read(12) # reading past normal
@@ -111,7 +111,7 @@ faces = loadBinarySTL(tfil.config["stlFile"])
 #     ])
 # numFaces = len(faces)
 # for i in range(len(faces)):
-#     # Adjusting normal and vertecies
+#     # Adjusting normal and vertices
 #     faces[i][1] = objAdjustVertex(faces[i][1])
 #     faces[i][2] = objAdjustVertex(faces[i][2])
 #     faces[i][3] = objAdjustVertex(faces[i][3])
