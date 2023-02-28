@@ -1,25 +1,25 @@
 import numpy as np
 import struct
+import math
 import tfil
 tfil.getConfig()
 # Adjusts scale of 3d object coordinates
+def objRotate(coords):
+    x = np.array([1,0,0,0,math.cos(tfil.config["objRotate"][0]),-math.sin(tfil.config["objRotate"][0]),0,math.sin(tfil.config["objRotate"][0]),math.cos(tfil.config["objRotate"][0])]).reshape(3,3)
+    y = np.array([math.cos(tfil.config["objRotate"][1]),0,math.sin(tfil.config["objRotate"][1]),0,1,0,-math.sin(tfil.config["objRotate"][1]),0,math.cos(tfil.config["objRotate"][1])]).reshape(3,3)
+    z = np.array([math.cos(tfil.config["objRotate"][2]),-math.sin(tfil.config["objRotate"][2]),0,math.sin(tfil.config["objRotate"][2]),math.cos(tfil.config["objRotate"][2]),0,0,0,1]).reshape(3,3)
+    newCoords = np.dot(z,np.dot(y,np.dot(x,coords)))
+    return(newCoords)
 def objTranslate(coords):
-    for i in range(3):
-        coords[i] = (coords[i]+tfil.config["objTranslate"][i])
-    return(coords)
-
-def objScale(coords):
-    for i in range(3):
-        coords[i] = (coords[i]*tfil.config["objScale"][i])
-    return(coords)
-
-def objAdjustVertex(coords):
-    newCoords = objTranslate(objScale(coords))
+    newCoords=np.add(coords,tfil.config["objTranslate"])
     return(newCoords)
 
-def objAdjustNormal(coords):
-    # Bug: Pretty sure this is wrong:
-    newCoords = objScale(np.array(coords))
+def objScale(coords):
+    newCoords = np.multiply(coords,tfil.config["objScale"])
+    return(newCoords)
+
+def objAdjustVertex(coords):
+    newCoords = objTranslate(objScale(objRotate(coords)))
     return(newCoords)
 
 # Loads STL unpacking the triangle vertexes stored as binary data.
@@ -35,12 +35,16 @@ def loadBinarySTL(filename):
         for i in range(numFaces):
             # For each triangle (1.3.11.2)
             # Datatype 'i' is 4 bytes, datatype 'iii' is 12 bytes
-            faces[i][0] = objAdjustNormal(struct.unpack('iii', stl.read(12))) # Normal vector
+            stl.read(12) # reading past normal
             faces[i][1] = objAdjustVertex(struct.unpack('iii', stl.read(12))) # Vertex 1
             faces[i][2] = objAdjustVertex(struct.unpack('iii', stl.read(12))) # Vertex 2
             faces[i][3] = objAdjustVertex(struct.unpack('iii', stl.read(12))) # Vertex 3
+            # Calculating Normal
+            AB = np.subtract(faces[i][2],faces[i][1])
+            AC = np.subtract(faces[i][3],faces[i][1])
+            faces[i][0] = np.cross(AB,AC)
             # d value for plane equation of v1.N=d, storing with triangle in  faces[i][4][0]
-            faces[i][4][0] = np.dot( faces[i][1], faces[i][0])
+            faces[i][4][0] = np.dot(faces[i][1], faces[i][0])
             # Null buffer
             stl.read(2)
             print(faces[i][1:4])
@@ -88,19 +92,31 @@ def testInBounds(face,point):
         print ("Zero division error: Coordinates O and A are the same")
         return(False)
     # Check if O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
-    result = 0<OlamBC and OlamBC<1 and 0<ImewAO and ImewAO<1
+    result = 0<=OlamBC and OlamBC<=1 and 0<=ImewAO and ImewAO<1
     return(result)
 
 # print(testInBounds(np.array([[0,0,1],[0,0,0],[5,0,0],[-1,6,0]]),np.array([0,100,0])))
 
-# faces = loadBinarySTL(tfil.config["stlFile"])
+faces = loadBinarySTL(tfil.config["stlFile"])
 # print(faces)
-numFaces = 1
-faces = np.array([[[0,1,0],[0,60,-100],[0,60,100],[-100,60,100],[60,0,0]]])
-for i in range(len(faces)):
-    faces[i][0] = objAdjustNormal(faces[i][0])
-    faces[i][1] = objAdjustVertex(faces[i][1])
-    faces[i][2] = objAdjustVertex(faces[i][2])
-    faces[i][3] = objAdjustVertex(faces[i][3])
-# print(testInBounds(faces,np.array([-1,30,0])))
-# exit()
+
+# faces = np.array([[[0,0,0],[-100,0,-100],[-100,0,100],[0,0,-100],[0,0,0]],
+#     [[0,0,0],[0,0,100],[-100,0,100],[0,0,-100],[0,0,0]],
+#     [[0,0,0],[-100,0,-100],[-100,0,100],[-100,50,-100],[0,0,0]],
+#     [[0,0,0],[0,0,100],[0,0,-100],[0,50,-100],[0,0,0]],
+#     [[0,0,0],[-100,0,-100],[0,0,-100],[-100,50,-100],[0,0,0]],
+#     [[0,0,0],[-100,50,-100],[0,50,-100],[0,0,-100],[0,0,0]],
+#     [[0,0,0],[-100,50,-100],[-100,0,100],[0,50,-100],[0,0,0]],
+#     [[0,0,0],[0,50,-100],[0,0,100],[-100,0,100],[0,0,0]]
+#     ])
+# numFaces = len(faces)
+# for i in range(len(faces)):
+#     # Adjusting normal and vertecies
+#     faces[i][1] = objAdjustVertex(faces[i][1])
+#     faces[i][2] = objAdjustVertex(faces[i][2])
+#     faces[i][3] = objAdjustVertex(faces[i][3])
+#     AB = np.subtract(faces[i][2],faces[i][1])
+#     AC = np.subtract(faces[i][3],faces[i][1])
+#     # Calculating normal
+#     faces[i][0] = np.cross(AB,AC)
+#     faces[i][4][0] = np.dot(faces[i][1], faces[i][0])

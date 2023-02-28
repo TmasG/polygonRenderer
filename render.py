@@ -15,10 +15,8 @@ def lineFaceInter(point,vector,face):
     d = face[4][0]
     P = point
     V = vector
-    x = (d-np.dot(N,P))/(np.dot(N,V))
+    x = (d-np.dot(N,P))/(np.dot(N,V)) 
     r = np.add(P,V*x)
-
-    # print(r,V,N)
     return(r)
 
 def switchXY(pixels):
@@ -37,14 +35,11 @@ def renderShadow():
             # Vector of ray from focal point to pixel
             pixel = np.array([i-0.5*tfil.config["resolution"][0],0,j-0.5*tfil.config["resolution"][1]])
             rayVector = np.subtract(pixel,focalPoint)
-            inter = False
             for k in range(STLProcess.numFaces):
                 intersection = lineFaceInter(focalPoint,rayVector,STLProcess.faces[k])
                 if STLProcess.testInBounds(STLProcess.faces[k],intersection):
-                    inter = True
+                    pixels[i][j] = 255
                     break
-            if not inter:
-                pixels[i][j] = 255
         print(i)
     pixels[50][0] = 120
     return(switchXY(pixels))
@@ -60,7 +55,6 @@ for i in pixels:
             count+=1
 print(count)
 saveImage(pixels)
-# print(lineFaceInter(np.array([0,0,0]),np.array([0,1,0]),np.array([[0,1,0],[0,0,0],[0,0,0],[0,1,0],[4,0,0]])))
 
 # Todo:
 # Test that lambda equation works
