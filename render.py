@@ -16,7 +16,7 @@ def lineFaceInter(point,vector,face):
     P = point
     V = vector
     if np.dot(N,V) == 0:
-        print("N perpendicular to V", str(N), str(V))
+        # print("N perpendicular to V", str(N), str(V))
         inter = False
         r = [0,0,0]
     else:

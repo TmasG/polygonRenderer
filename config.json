@@ -1,7 +1,7 @@
 {"objScale":[1,1,1],
-"objTranslate":[0,3000000000,0],
+"objTranslate":[0,0,0],
 "bigobjecttrl":3000000000,
-"objRotate":[0,0,0],
+"objRotate":[0,0,-1],
 "resolution":[100,100],
 "focalPoint":[0,-100,0],
 "renderType":"perspective",
@@ -9,4 +9,4 @@
 "lightPoint":[],
 "lightPlaneNorm":[0,1,0],
 "outputFileName":"renderTest.png",
-"stlFile":"star.stl"}
+"stlFile":"STLtest.stl"}

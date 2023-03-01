@@ -36,9 +36,9 @@ def loadBinarySTL(filename):
             # For each triangle (1.3.11.2)
             # Datatype 'i' is 4 bytes, datatype 'iii' is 12 bytes
             stl.read(12) # reading past normal
-            faces[i][1] = objAdjustVertex(struct.unpack('iii', stl.read(12))) # Vertex 1
-            faces[i][2] = objAdjustVertex(struct.unpack('iii', stl.read(12))) # Vertex 2
-            faces[i][3] = objAdjustVertex(struct.unpack('iii', stl.read(12))) # Vertex 3
+            faces[i][1] = objAdjustVertex(struct.unpack('fff', stl.read(12))) # Vertex 1
+            faces[i][2] = objAdjustVertex(struct.unpack('fff', stl.read(12))) # Vertex 2
+            faces[i][3] = objAdjustVertex(struct.unpack('fff', stl.read(12))) # Vertex 3
             # Calculating Normal
             AB = np.subtract(faces[i][2],faces[i][1])
             AC = np.subtract(faces[i][3],faces[i][1])
