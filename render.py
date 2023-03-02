@@ -3,7 +3,6 @@ import STLProcess
 import numpy as np
 import time
 from PIL import Image
-
 def saveImage(pixels):
     img = Image.fromarray(pixels)
     if img.mode != "rgb":
@@ -33,7 +32,19 @@ def switchXY(pixels):
             newPixels[i][j] = pixels[j][tfil.config["resolution"][1]-i-1]
     return(newPixels)
 
+def simulateRay(point, vector, count):
+    global pixels
+    for k in range(STLProcess.numFaces):
+        intersection = lineFaceInter(point,vector,STLProcess.faces[k])
+        if not intersection[0]:
+            # If no intersection with face then skip to next face
+            continue
+        if STLProcess.testInBounds(STLProcess.faces[k],intersection[1]):
+            # If face intersection is valid then set pixel
+            pixels[i][j] = 255
+            break
 def renderShadow():
+    global pixels
     pixels = np.zeros((tfil.config["resolution"][0],tfil.config["resolution"][1]))
     for i in range(tfil.config["resolution"][0]):
         for j in range(tfil.config["resolution"][1]):
@@ -42,15 +53,7 @@ def renderShadow():
             # Vector of ray from focal point to pixel
             pixel = np.array([i-0.5*tfil.config["resolution"][0],0,j-0.5*tfil.config["resolution"][1]])
             rayVector = np.subtract(pixel,focalPoint)
-            for k in range(STLProcess.numFaces):
-                intersection = lineFaceInter(focalPoint,rayVector,STLProcess.faces[k])
-                if not intersection[0]:
-                    # If no intersection with face then skip to next face
-                    continue
-                if STLProcess.testInBounds(STLProcess.faces[k],intersection[1]):
-                    # If face intersection is valid then set pixel
-                    pixels[i][j] = 255
-                    break
+            simulateRay(focalPoint, rayVector, tfil.config["maxBounces"])
         print(i)
     pixels[50][0] = 120
     return(switchXY(pixels))
