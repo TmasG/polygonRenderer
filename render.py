@@ -32,59 +32,61 @@ def switchXY(pixels):
             newPixels[i][j] = pixels[j][tfil.config["resolution"][1]-i-1]
     return(newPixels)
 
+def firstIntersection(point, inters):
+    minInter = inters[0][0]
+    # Ịnitialising distance as first distance
+    minDistance = np.linalg.norm(np.subtract(point, inters[0][1]))
+    # For each intersection compare the distance to the previous smallest distance
+    for m in range(len(inters)):
+        distance = np.linalg.norm(np.subtract(point, inters[m][1]))
+        if distance < minDistance:
+            minInter = inters[m][0]
+        minDistance = distance
+    return(minInter,minDistance)
+def testForIntersections(point,vector,faces,facesLength):
+    inters = []
+    for l in range(facesLength):
+        intersection = lineFaceInter(point,vector,faces[l])
+        if intersection[0]:
+            if STLProcess.testInBounds(faces[l],intersection[1]):
+                # If intersection is valid
+                inters.append([faces[l],intersection[1]])
+    return(inters)
 def simulateRay(point, vector, count):
     global pixels
     fInter = False
     # Terminate ray if too old?
     if count > tfil.config["maxBounces"]:
         return(0)
-    lightInters = []
-    bMult = 0
     # Does ray intersect with and light sources?
-    for l in range(STLProcess.numLights):
-        intersection = lineFaceInter(point,vector,STLProcess.lights[l])
-        # print(intersection,STLProcess.lights[l])
-        if not intersection[0]:
-            # If no intersection with light source then skip to next light source
-            continue
-        if STLProcess.testInBounds(STLProcess.lights[l],intersection[1]):
-            lightInters.append([STLProcess.lights[l],intersection[1]])
+    lightInters = testForIntersections(point,vector,STLProcess.lights,STLProcess.numLights)
     # Going through each valid light source intersection and finding the first one to occur
-    if len(lightInters) != 0:
-        minInter = lightInters[0][0]
-        minDistance = np.linalg.norm(np.subtract(point, lightInters[0][1]))
-        for m in range(len(lightInters)):
-            distance = np.linalg.norm(np.subtract(point, lightInters[m][1]))
-            if distance < minDistance:
-                minInter = lightInters[m][0]
-            minDistance = distance
     lInter = len(lightInters) != 0
+    if len(lightInters) != 0:
+        light = firstIntersection(point, lightInters)
     # Does ray intersect with any faces?
-    for k in range(STLProcess.numFaces):
-        intersection = lineFaceInter(point,vector,STLProcess.faces[k])
-        if not intersection[0]:
-            # If no intersection with face then skip to next face
-            continue
-        if STLProcess.testInBounds(STLProcess.faces[k],intersection[1]):
-            # If face intersection is valid then set pixel
-            fInter = True
-            break
+    faceInters = testForIntersections(point,vector,STLProcess.faces,STLProcess.numFaces)
+    # Going through each valid face intersection and finding the first one to occur
+    fInter = len(faceInters) != 0
+    if len(faceInters) != 0:
+        face = firstIntersection(point, faceInters)
+    fMult = 0
     # bMult represents the brightness multiplier
     if fInter or lInter:
         if lInter: 
             if fInter:
-                if np.linalg.norm(np.subtract(point, intersection[1])) < minDistance:
+                if face[1] < light[1]:
                     # face in front
-                    bMult = 0
+                    bMult = fMult
                 else:
                     # light infront
-                    bMult = minInter[4][1]
+                    bMult = light[0][4][1]
             else:
                 # Just light
-                bMult = minInter[4][1]
+                bMult = light[0][4][1]
         else:
             # Just face
-            bMult = 0
+            bMult = fMult
         
     return(bMult)
     
@@ -100,7 +102,8 @@ def render():
             rayVector = np.subtract(pixel,focalPoint)
             pixels[i][j] = 255*simulateRay(focalPoint,rayVector,0)
         print(i)
-    pixels[50][0] = 120
+    # Ạdding a test pixel halfway along the x-axis
+    pixels[int(tfil.config["resolution"][0]/2)-1][0] = 255
     return(switchXY(pixels))
 def renderShadow():
     global pixels
