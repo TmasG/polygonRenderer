@@ -32,6 +32,7 @@ def loadBinarySTL(filename):
         numFaces = struct.unpack('i', stl.read(4))[0]
         print('Number of faces:' + str(numFaces))
         faces = np.zeros((numFaces,5,3))
+        print("Faces:")
         for i in range(numFaces): 
             # For each triangle (1.3.11.2)
             # Datatype 'i' is 4 bytes, datatype 'iii' is 12 bytes
@@ -43,13 +44,26 @@ def loadBinarySTL(filename):
             AB = np.subtract(faces[i][2],faces[i][1])
             AC = np.subtract(faces[i][3],faces[i][1])
             faces[i][0] = np.cross(AB,AC)
-            # d value for plane equation of v1.N=d, storing with triangle in  faces[i][4][0]
+            # d value for plane equation of v1.N=d, storing with triangle in faces[i][4][0]
             faces[i][4][0] = np.dot(faces[i][1], faces[i][0])
             # Null buffer
             stl.read(2)
             print(faces[i][1:4])
     return(faces)
-
+def loadLightSources(filename):
+    global numLights
+    lights = np.array(tfil.readJson(filename))
+    numLights = len(lights)
+    print("Lights:")
+    for i in range(len(lights)):
+        # Light face Normal
+        AB = np.subtract(lights[i][1],lights[i][2])
+        AC = np.subtract(lights[i][1],lights[i][3])
+        lights[i][0] = np.cross(AB,AC) 
+        # d value for plane equation of v1.N=d, storing with light source in lights[i][4][0]
+        lights[i][4][0] = np.dot(lights[i][1], lights[i][0])
+        print(lights[i])
+    return(lights)
 # Test whether a point is in the bounds of a face triangle
 def testInBounds(face,point):
     # Calculate minimum distances of point to lines AB, BC, CA
@@ -92,21 +106,10 @@ def testInBounds(face,point):
         print ("Zero division error: Coordinates O and A are the same")
         return(False)
     # Check if O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
-    result = 0<=OlamBC and OlamBC<=1 and 0<=ImewAO and ImewAO<1
+    result = 0<=np.around(OlamBC,tfil.config["decimalAccuracy"]) and np.around(OlamBC,tfil.config["decimalAccuracy"])<=1 and 0<=np.around(ImewAO,tfil.config["decimalAccuracy"]) and np.around(ImewAO,tfil.config["decimalAccuracy"])<1
     return(result)
-def loadLightSources(filename):
-    global numLights
-    lights = np.array(tfil.readJson(filename))
-    numLights = len(lights)
-    for i in range(len(lights)):
-        # Light face Normal
-        AB = np.subtract(lights[i][1],lights[i][2])
-        AC = np.subtract(lights[i][1],lights[i][3])
-        print(AB,AC)
-        lights[i][0] = np.cross(AB,AC) 
-    return(lights)
-lights = loadLightSources(tfil.config["lightSources"])
 faces = loadBinarySTL(tfil.config["stlFile"])
+lights = loadLightSources(tfil.config["lightSources"])
 # print(faces)
 
 # faces = np.array([[[0,0,0],[-100,0,-100],[-100,0,100],[0,0,-100],[0,0,0]],
