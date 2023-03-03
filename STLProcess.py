@@ -94,9 +94,18 @@ def testInBounds(face,point):
     # Check if O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
     result = 0<=OlamBC and OlamBC<=1 and 0<=ImewAO and ImewAO<1
     return(result)
-
-# print(testInBounds(np.array([[0,0,1],[0,0,0],[5,0,0],[-1,6,0]]),np.array([0,100,0])))
-
+def loadLightSources(filename):
+    global numLights
+    lights = np.array(tfil.readJson(filename))
+    numLights = len(lights)
+    for i in range(len(lights)):
+        # Light face Normal
+        AB = np.subtract(lights[i][1],lights[i][2])
+        AC = np.subtract(lights[i][1],lights[i][3])
+        print(AB,AC)
+        lights[i][0] = np.cross(AB,AC) 
+    return(lights)
+lights = loadLightSources(tfil.config["lightSources"])
 faces = loadBinarySTL(tfil.config["stlFile"])
 # print(faces)
 
