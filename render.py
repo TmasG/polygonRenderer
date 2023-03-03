@@ -43,6 +43,7 @@ def simulateRay(point, vector, count):
     # Does ray intersect with and light sources?
     for l in range(STLProcess.numLights):
         intersection = lineFaceInter(point,vector,STLProcess.lights[l])
+        # print(intersection,STLProcess.lights[l])
         if not intersection[0]:
             # If no intersection with light source then skip to next light source
             continue
@@ -72,19 +73,18 @@ def simulateRay(point, vector, count):
     if fInter or lInter:
         if lInter: 
             if fInter:
-                print(intersection[1], point, np.linalg.norm(np.subtract(point, intersection[1])),minDistance)
                 if np.linalg.norm(np.subtract(point, intersection[1])) < minDistance:
                     # face in front
                     bMult = 0
                 else:
                     # light infront
-                    bMult = minInter[4][0]
+                    bMult = minInter[4][1]
             else:
                 # Just light
-                bMult = minInter[4][0]
+                bMult = minInter[4][1]
         else:
             # Just face
-            bMult = 1
+            bMult = 0
         
     return(bMult)
     
