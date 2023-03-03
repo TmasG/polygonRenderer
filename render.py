@@ -43,6 +43,7 @@ def firstIntersection(point, inters):
             minInter = inters[m][0]
         minDistance = distance
     return(minInter,minDistance)
+
 def testForIntersections(point,vector,faces,facesLength):
     inters = []
     for l in range(facesLength):
@@ -52,9 +53,11 @@ def testForIntersections(point,vector,faces,facesLength):
                 # If intersection is valid
                 inters.append([faces[l],intersection[1]])
     return(inters)
+
+def reflectRay():
+    pass
+
 def simulateRay(point, vector, count):
-    global pixels
-    fInter = False
     # Terminate ray if too old?
     if count > tfil.config["maxBounces"]:
         return(0)
@@ -79,7 +82,7 @@ def simulateRay(point, vector, count):
                     # face in front
                     bMult = fMult
                 else:
-                    # light infront
+                    # light in front
                     bMult = light[0][4][1]
             else:
                 # Just light
@@ -87,7 +90,6 @@ def simulateRay(point, vector, count):
         else:
             # Just face
             bMult = fMult
-        
     return(bMult)
     
 def render():
