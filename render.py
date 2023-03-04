@@ -54,9 +54,17 @@ def testForIntersections(point,vector,faces,facesLength):
                 inters.append([faces[l],intersection[1]])
     return(inters)
 
-def reflectRay():
-    pass
+def reflectRay(point,vector,count):
+    mult = 0
+    for i in range(tfil.config["rayChildren"]):
+        # For each child ray
 
+        # Recursively simulate the ray
+        mults += simulateRay(relectedPoint, reflectedVector, count+1)
+    # Calculate average of all children
+    fMults = mults/tfil.config["rayChildren"]
+    return(fMult)
+    
 def simulateRay(point, vector, count):
     # Terminate ray if too old?
     if count > tfil.config["maxBounces"]:
@@ -73,7 +81,7 @@ def simulateRay(point, vector, count):
     fInter = len(faceInters) != 0
     if len(faceInters) != 0:
         face = firstIntersection(point, faceInters)
-    fMult = 0
+    fMult = reflectRay(point,vector,count)
     # bMult represents the brightness multiplier
     if fInter or lInter:
         if lInter: 
