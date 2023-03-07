@@ -176,5 +176,4 @@ print(count)
 saveImage(pixels)
 
 # Todo:
-# do boundary tests on loadBinarySTL.
-# fix loadBinarySTL
+# still need to do distribution and lambert
