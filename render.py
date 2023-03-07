@@ -14,6 +14,7 @@ def lineFaceInter(point,vector,face):
     d = face[4][0]
     P = point
     V = vector
+    x = 0
     if np.dot(N,V) == 0:
         # print("N perpendicular to V", str(N), str(V))
         inter = False
@@ -23,7 +24,7 @@ def lineFaceInter(point,vector,face):
         x = (d-np.dot(N,P))/(np.dot(N,V)) 
         r = np.add(P,V*x)
     # returns if there is an intersection and the distance if so
-    return(inter,r)
+    return(inter,r,x)
 
 def switchXY(pixels):
     newPixels = np.zeros((tfil.config["resolution"][1],tfil.config["resolution"][0]))
@@ -33,37 +34,55 @@ def switchXY(pixels):
     return(newPixels)
 
 def firstIntersection(point, inters):
-    minInter = inters[0][0]
+    minInterFace = inters[0][0]
+    inter = inters[0][1]
     # Ịnitialising distance as first distance
     minDistance = np.linalg.norm(np.subtract(point, inters[0][1]))
     # For each intersection compare the distance to the previous smallest distance
     for m in range(len(inters)):
         distance = np.linalg.norm(np.subtract(point, inters[m][1]))
         if distance < minDistance:
-            minInter = inters[m][0]
+            minInterFace = inters[m][0]
+            inter = inters[m][1]
         minDistance = distance
-    return(minInter,minDistance)
+    return(minInterFace,minDistance,inter)
 
 def testForIntersections(point,vector,faces,facesLength):
     inters = []
     for l in range(facesLength):
         intersection = lineFaceInter(point,vector,faces[l])
-        if intersection[0]:
+        # If there is an intersection and said intersection is in front of the ray
+        if intersection[0] and intersection[2]>0:
             if STLProcess.testInBounds(faces[l],intersection[1]):
                 # If intersection is valid
                 inters.append([faces[l],intersection[1]])
     return(inters)
 
-def reflectRay(point,vector,count):
-    mult = 0
+def reflectRay(point,vector,face,count):
+    mults = 0
+    N = face[0][0]
+    d = face[0][4][0]
+    I = face[2]
+    A = np.subtract(I,vector)
+    M=np.add(A,((d-np.dot(A,N))/np.dot(N,N))*N)
+    baseReflectedVector = np.add(I,np.subtract(A,2*M))
     for i in range(tfil.config["rayChildren"]):
         # For each child ray
-
+        # Varying direction of child rays
+        reflectedVector = baseReflectedVector
+        # Lambert cosine law
+        lambert = 1
+        baseReflectedVector
         # Recursively simulate the ray
-        mults += simulateRay(relectedPoint, reflectedVector, count+1)
+        mult = simulateRay(I, reflectedVector, count+1)
+        # Accounting for surface reflectivity and lambert cosine law
+        mult = mult*tfil.config["surfaceReflectivity"] * lambert
+        mults += mult
     # Calculate average of all children
-    fMults = mults/tfil.config["rayChildren"]
+    fMult = mults/tfil.config["rayChildren"]
     return(fMult)
+def calcLightIntensity(distance, power):
+    return(power/(4*np.pi*distance**2))
     
 def simulateRay(point, vector, count):
     # Terminate ray if too old?
@@ -75,29 +94,34 @@ def simulateRay(point, vector, count):
     lInter = len(lightInters) != 0
     if len(lightInters) != 0:
         light = firstIntersection(point, lightInters)
+        intensity = calcLightIntensity(light[1],light[0][4][1])
     # Does ray intersect with any faces?
     faceInters = testForIntersections(point,vector,STLProcess.faces,STLProcess.numFaces)
     # Going through each valid face intersection and finding the first one to occur
     fInter = len(faceInters) != 0
     if len(faceInters) != 0:
         face = firstIntersection(point, faceInters)
-    fMult = reflectRay(point,vector,count)
+        fMult = reflectRay(point,vector,face,count)
+
     # bMult represents the brightness multiplier
     if fInter or lInter:
         if lInter: 
             if fInter:
                 if face[1] < light[1]:
-                    # face in front
+                    # Face in front
                     bMult = fMult
                 else:
-                    # light in front
-                    bMult = light[0][4][1]
+                    # Light in front
+                    bMult = intensity
             else:
                 # Just light
-                bMult = light[0][4][1]
+                bMult = intensity
         else:
             # Just face
             bMult = fMult
+    else:
+        # No intersections
+        bMult = 0
     return(bMult)
     
 def render():

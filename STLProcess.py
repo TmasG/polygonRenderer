@@ -4,10 +4,10 @@ import math
 import tfil
 tfil.getConfig()
 # Adjusts scale of 3d object coordinates
-def objRotate(coords):
-    x = np.array([1,0,0,0,math.cos(tfil.config["objRotate"][0]),-math.sin(tfil.config["objRotate"][0]),0,math.sin(tfil.config["objRotate"][0]),math.cos(tfil.config["objRotate"][0])]).reshape(3,3)
-    y = np.array([math.cos(tfil.config["objRotate"][1]),0,math.sin(tfil.config["objRotate"][1]),0,1,0,-math.sin(tfil.config["objRotate"][1]),0,math.cos(tfil.config["objRotate"][1])]).reshape(3,3)
-    z = np.array([math.cos(tfil.config["objRotate"][2]),-math.sin(tfil.config["objRotate"][2]),0,math.sin(tfil.config["objRotate"][2]),math.cos(tfil.config["objRotate"][2]),0,0,0,1]).reshape(3,3)
+def objRotate(coords,rots):
+    x = np.array([1,0,0,0,math.cos(rots[0]),-math.sin(rots[0]),0,math.sin(rots[0]),math.cos(rots[0])]).reshape(3,3)
+    y = np.array([math.cos(rots[1]),0,math.sin(rots[1]),0,1,0,-math.sin(rots[1]),0,math.cos(rots[1])]).reshape(3,3)
+    z = np.array([math.cos(rots[2]),-math.sin(rots[2]),0,math.sin(rots[2]),math.cos(rots[2]),0,0,0,1]).reshape(3,3)
     newCoords = np.dot(z,np.dot(y,np.dot(x,coords)))
     return(newCoords)
 def objTranslate(coords):
@@ -19,7 +19,7 @@ def objScale(coords):
     return(newCoords)
 
 def objAdjustVertex(coords):
-    newCoords = objTranslate(objScale(objRotate(coords)))
+    newCoords = objTranslate(objScale(objRotate(coords,tfil.config["objRotate"])))
     return(newCoords)
 
 # Loads STL unpacking the triangle vertices stored as binary data.
@@ -59,10 +59,13 @@ def loadLightSources(filename):
         # Light face Normal
         AB = np.subtract(lights[i][1],lights[i][2])
         AC = np.subtract(lights[i][1],lights[i][3])
-        lights[i][0] = np.cross(AB,AC) 
+        lights[i][0] = np.cross(AB,AC)
+        # Normalizing light face normal
+        lights[i][0] = lights[i][0]/np.linalg.norm(lights[i][0])
         # d value for plane equation of v1.N=d, storing with light source in lights[i][4][0]
         lights[i][4][0] = np.dot(lights[i][1], lights[i][0])
         print(lights[i])
+        # Where lights[4][1] is the light power
     return(lights)
 # Test whether a point is in the bounds of a face triangle
 def testInBounds(face,point):
