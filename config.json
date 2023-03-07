@@ -1,12 +1,12 @@
 {"objScale":[1,1,1],
-"objTranslate":[10,10,10],
+"objTranslate":[0,40,-10],
 "bigobjecttrl":3000000000,
 "objRotate":[0,0,0],
 "resolution":[50,50],
-"focalPoint":[0,-200,0],
+"focalPoint":[0,-100,0],
 "rayChildren":1,
 "surfaceReflectivity":0.8,
-"maxBounces":5,
+"maxBounces":4,
 "renderType":"perspective",
 "decimalAccuracy":5,
 "lightType":"plane",
@@ -14,4 +14,4 @@
 "lightPlaneNorm":[0,1,0],
 "lightSources":"lightSources.json",
 "outputFileName":"renderTest.png",
-"stlFile":"star.stl"}
+"stlFile":"LowPolyBenchy.stl"}

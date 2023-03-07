@@ -48,7 +48,8 @@ def loadBinarySTL(filename):
             faces[i][4][0] = np.dot(faces[i][1], faces[i][0])
             # Null buffer
             stl.read(2)
-            print(faces[i][1:4])
+            print(faces[i])
+        print(i)
     return(faces)
 def loadLightSources(filename):
     global numLights
@@ -113,25 +114,3 @@ def testInBounds(face,point):
     return(result)
 faces = loadBinarySTL(tfil.config["stlFile"])
 lights = loadLightSources(tfil.config["lightSources"])
-# print(faces)
-
-# faces = np.array([[[0,0,0],[-100,0,-100],[-100,0,100],[0,0,-100],[0,0,0]],
-#     [[0,0,0],[0,0,100],[-100,0,100],[0,0,-100],[0,0,0]],
-#     [[0,0,0],[-100,0,-100],[-100,0,100],[-100,50,-100],[0,0,0]],
-#     [[0,0,0],[0,0,100],[0,0,-100],[0,50,-100],[0,0,0]],
-#     [[0,0,0],[-100,0,-100],[0,0,-100],[-100,50,-100],[0,0,0]],
-#     [[0,0,0],[-100,50,-100],[0,50,-100],[0,0,-100],[0,0,0]],
-#     [[0,0,0],[-100,50,-100],[-100,0,100],[0,50,-100],[0,0,0]],
-#     [[0,0,0],[0,50,-100],[0,0,100],[-100,0,100],[0,0,0]]
-#     ])
-# numFaces = len(faces)
-# for i in range(len(faces)):
-#     # Adjusting normal and vertices
-#     faces[i][1] = objAdjustVertex(faces[i][1])
-#     faces[i][2] = objAdjustVertex(faces[i][2])
-#     faces[i][3] = objAdjustVertex(faces[i][3])
-#     AB = np.subtract(faces[i][2],faces[i][1])
-#     AC = np.subtract(faces[i][3],faces[i][1])
-#     # Calculating normal
-#     faces[i][0] = np.cross(AB,AC)
-#     faces[i][4][0] = np.dot(faces[i][1], faces[i][0])
