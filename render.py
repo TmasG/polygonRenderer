@@ -132,7 +132,7 @@ def render():
             # For pixel i,j:
             focalPoint = np.array(tfil.config["focalPoint"])
             # Vector of ray from focal point to pixel
-            pixel = np.array([i-0.5*tfil.config["resolution"][0],0,j-0.5*tfil.config["resolution"][1]])
+            pixel = np.array([tfil.config["cameraSize"][0]*(i/tfil.config["resolution"][0]-0.5),0,tfil.config["cameraSize"][1]*(j/tfil.config["resolution"][1]-0.5)])
             rayVector = np.subtract(pixel,focalPoint)
             pixels[i][j] = 255*simulateRay(focalPoint,rayVector,0)
         print(i)
