@@ -137,19 +137,22 @@ def render():
     focalPoint = np.array(tfil.config["focalPoint"])
     for i in range(tfil.config["resolution"][0]):
         for j in range(tfil.config["resolution"][1]):
+            subRay = 0
             subPixels = 0
-            for x in range(tfil.config["rayChildren"][0]):
-                for y in range(tfil.config["rayChildren"][1]):
+            for x in range(tfil.config["subRays"][0]):
+                for y in range(tfil.config["subRays"][1]):
                     # For pixel i,j:
                     # Vector of ray from focal point to pixel
-                    pixel = np.array([tfil.config["cameraSize"][0]*(i/tfil.config["resolution"][0]-1+x/tfil.config["rayChildren"][0]),0,tfil.config["cameraSize"][1]*(j/tfil.config["resolution"][1]-1+y/tfil.config["rayChildren"][1])])
+                    # Fix this :
+                    pixel = np.array([tfil.config["cameraSize"][0]*(i/tfil.config["resolution"][0]-0.5)+x/tfil.config["subRays"][0],0,tfil.config["cameraSize"][1]*(j/tfil.config["resolution"][1]-0.5)+y/tfil.config["subRays"][1]])
                     rayVector = np.subtract(pixel,focalPoint)
                     ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector))
                     # print(calcLightIntensity(ray[1],ray[0]))
+                    subRay += 255*ray[0]
                     subPixels += 255*calcLightIntensity(ray[1],ray[0])*tfil.config["gain"]
                     # pixels[i][j] = 255*ray[0]
-            pixels[i][j] = subPixels/(tfil.config["rayChildren"][0]*tfil.config["rayChildren"][1])
-        print(i)
+            pixels[i][j] = subPixels/(tfil.config["subRays"][0]*tfil.config["subRays"][1])
+        print(i,subPixels,subRay)
     # Ạdding a test pixel halfway along the x-axis
     pixels[int(tfil.config["resolution"][0]/2)-1][0] = 255
     return(switchXY(pixels))
