@@ -134,43 +134,47 @@ def simulateRay(point, vector, count,distance):
 def render():
     global pixels
     pixels = np.zeros((tfil.config["resolution"][0],tfil.config["resolution"][1]))
+    focalPoint = np.array(tfil.config["focalPoint"])
     for i in range(tfil.config["resolution"][0]):
         for j in range(tfil.config["resolution"][1]):
-            # For pixel i,j:
-            focalPoint = np.array(tfil.config["focalPoint"])
-            # Vector of ray from focal point to pixel
-            pixel = np.array([tfil.config["cameraSize"][0]*(i/tfil.config["resolution"][0]-0.5),0,tfil.config["cameraSize"][1]*(j/tfil.config["resolution"][1]-0.5)])
-            rayVector = np.subtract(pixel,focalPoint)
-            ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector))
-            # print(calcLightIntensity(ray[1],ray[0]))
-            pixels[i][j] = 255*calcLightIntensity(ray[1],ray[0])*tfil.config["gain"]
-            # pixels[i][j] = 255*ray[0]
+            subPixels = 0
+            for x in range(tfil.config["rayChildren"][0]):
+                for y in range(tfil.config["rayChildren"][1]):
+                    # For pixel i,j:
+                    # Vector of ray from focal point to pixel
+                    pixel = np.array([tfil.config["cameraSize"][0]*(i/tfil.config["resolution"][0]-1+x/tfil.config["rayChildren"][0]),0,tfil.config["cameraSize"][1]*(j/tfil.config["resolution"][1]-1+y/tfil.config["rayChildren"][1])])
+                    rayVector = np.subtract(pixel,focalPoint)
+                    ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector))
+                    # print(calcLightIntensity(ray[1],ray[0]))
+                    subPixels += 255*calcLightIntensity(ray[1],ray[0])*tfil.config["gain"]
+                    # pixels[i][j] = 255*ray[0]
+            pixels[i][j] = subPixels/(tfil.config["rayChildren"][0]*tfil.config["rayChildren"][1])
         print(i)
     # Ạdding a test pixel halfway along the x-axis
     pixels[int(tfil.config["resolution"][0]/2)-1][0] = 255
     return(switchXY(pixels))
-def renderShadow():
-    global pixels
-    pixels = np.zeros((tfil.config["resolution"][0],tfil.config["resolution"][1]))
-    for i in range(tfil.config["resolution"][0]):
-        for j in range(tfil.config["resolution"][1]):
-            # For pixel i,j:
-            focalPoint = np.array(tfil.config["focalPoint"])
-            # Vector of ray from focal point to pixel
-            pixel = np.array([i-0.5*tfil.config["resolution"][0],0,j-0.5*tfil.config["resolution"][1]])
-            rayVector = np.subtract(pixel,focalPoint)
-            for k in range(STLProcess.numFaces):
-                intersection = lineFaceInter(pixel,rayVector,STLProcess.faces[k])
-                if not intersection[0]:
-                    # If no intersection with face then skip to next face
-                    continue
-                if STLProcess.testInBounds(STLProcess.faces[k],intersection[1]):
-                    # If face intersection is valid then set pixel
-                    pixels[i][j] = 255
-                    break
-        print(i)
-    pixels[50][0] = 120
-    return(switchXY(pixels))
+# def renderShadow():
+#     global pixels
+#     pixels = np.zeros((tfil.config["resolution"][0],tfil.config["resolution"][1]))
+#     for i in range(tfil.config["resolution"][0]):
+#         for j in range(tfil.config["resolution"][1]):
+#             # For pixel i,j:
+#             focalPoint = np.array(tfil.config["focalPoint"])
+#             # Vector of ray from focal point to pixel
+#             pixel = np.array([i-0.5*tfil.config["resolution"][0],0,j-0.5*tfil.config["resolution"][1]])
+#             rayVector = np.subtract(pixel,focalPoint)
+#             for k in range(STLProcess.numFaces):
+#                 intersection = lineFaceInter(pixel,rayVector,STLProcess.faces[k])
+#                 if not intersection[0]:
+#                     # If no intersection with face then skip to next face
+#                     continue
+#                 if STLProcess.testInBounds(STLProcess.faces[k],intersection[1]):
+#                     # If face intersection is valid then set pixel
+#                     pixels[i][j] = 255
+#                     break
+#         print(i)
+#     pixels[50][0] = 120
+#     return(switchXY(pixels))
 
 
 a = time.time()
