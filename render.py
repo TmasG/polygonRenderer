@@ -58,7 +58,7 @@ def testForIntersections(point,vector,faces,facesLength):
                 inters.append([faces[l],intersection[1]])
     return(inters)
 
-def reflectRay(point,vector,face,count):
+def reflectRay(point,vector,face,count,distance):
     mults = 0
     N = face[0][0]
     d = face[0][4][0]
@@ -72,36 +72,39 @@ def reflectRay(point,vector,face,count):
         reflectedVector = baseReflectedVector
         # Lambert cosine law
         lambert = 1
+        # print(face[0][0])
+        # exit()
         baseReflectedVector
         # Recursively simulate the ray
-        mult = simulateRay(I, reflectedVector, count+1)
+        mult = simulateRay(I, reflectedVector, count+1,distance)
         # Accounting for surface reflectivity and lambert cosine law
-        mult = mult*tfil.config["surfaceReflectivity"] * lambert
-        mults += mult
+        distance += mult[1]
+        mults += mult[0]*(tfil.config["surfaceReflectivity"] * lambert)
     # Calculate average of all children
     fMult = mults/tfil.config["rayChildren"]
-    return(fMult)
+    return(fMult,distance)
+
 def calcLightIntensity(distance, power):
     return(power/(4*np.pi*distance**2))
     
-def simulateRay(point, vector, count):
+def simulateRay(point, vector, count,distance):
     # Terminate ray if too old?
     if count > tfil.config["maxBounces"]:
-        return(0)
+        return(0,0)
     # Does ray intersect with and light sources?
     lightInters = testForIntersections(point,vector,STLProcess.lights,STLProcess.numLights)
     # Going through each valid light source intersection and finding the first one to occur
     lInter = len(lightInters) != 0
     if len(lightInters) != 0:
         light = firstIntersection(point, lightInters)
-        intensity = calcLightIntensity(light[1],light[0][4][1])
     # Does ray intersect with any faces?
     faceInters = testForIntersections(point,vector,STLProcess.faces,STLProcess.numFaces)
     # Going through each valid face intersection and finding the first one to occur
     fInter = len(faceInters) != 0
     if len(faceInters) != 0:
         face = firstIntersection(point, faceInters)
-        fMult = reflectRay(point,vector,face,count)
+        fMult = reflectRay(point,vector,face,count,distance)
+        # fMult = calcLightIntensity(face[1],fMult) 
 
     # bMult represents the brightness multiplier
     if fInter or lInter:
@@ -109,20 +112,24 @@ def simulateRay(point, vector, count):
             if fInter:
                 if face[1] < light[1]:
                     # Face in front
-                    bMult = fMult
+                    bMult = fMult[0]
+                    distance += fMult[1]
                 else:
                     # Light in front
-                    bMult = intensity
+                    bMult = light[1]
+                    distance += light[0][4][1]
             else:
                 # Just light
-                bMult = intensity
+                bMult = light[1]
+                distance += light[0][4][1]
         else:
             # Just face
-            bMult = fMult
+            bMult = fMult[0]
+            distance += fMult[1]
     else:
         # No intersections
         bMult = 0
-    return(bMult)
+    return(bMult,distance)
     
 def render():
     global pixels
@@ -134,7 +141,10 @@ def render():
             # Vector of ray from focal point to pixel
             pixel = np.array([tfil.config["cameraSize"][0]*(i/tfil.config["resolution"][0]-0.5),0,tfil.config["cameraSize"][1]*(j/tfil.config["resolution"][1]-0.5)])
             rayVector = np.subtract(pixel,focalPoint)
-            pixels[i][j] = 255*simulateRay(focalPoint,rayVector,0)
+            ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector))
+            # print(calcLightIntensity(ray[1],ray[0]))
+            pixels[i][j] = 255*calcLightIntensity(ray[1],ray[0])*tfil.config["gain"]
+            # pixels[i][j] = 255*ray[0]
         print(i)
     # Ạdding a test pixel halfway along the x-axis
     pixels[int(tfil.config["resolution"][0]/2)-1][0] = 255

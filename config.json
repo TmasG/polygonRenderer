@@ -8,6 +8,7 @@
 "rayChildren":1,
 "surfaceReflectivity":0.85,
 "maxBounces":1,
+"gain":100000000000,
 "renderType":"perspective",
 "decimalAccuracy":5,
 "lightType":"plane",
