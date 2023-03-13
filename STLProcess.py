@@ -10,47 +10,52 @@ def objRotate(coords,rots):
     z = np.array([math.cos(rots[2]),-math.sin(rots[2]),0,math.sin(rots[2]),math.cos(rots[2]),0,0,0,1]).reshape(3,3)
     newCoords = np.dot(z,np.dot(y,np.dot(x,coords)))
     return(newCoords)
-def objTranslate(coords):
-    newCoords=np.add(coords,tfil.config["objTranslate"])
+def objTranslate(coords,translator):
+    newCoords=np.add(coords,translator)
+    return(newCoords)
+def objScale(coords,scaler):
+    newCoords = np.multiply(coords,scaler)
+    return(newCoords)
+def objAdjustVertex(coords,fn):
+    newCoords = objTranslate(objScale(objRotate(coords,tfil.config["objRotate"][fn]),tfil.config["objScale"][fn]),tfil.config["objTranslate"][fn])
     return(newCoords)
 
-def objScale(coords):
-    newCoords = np.multiply(coords,tfil.config["objScale"])
-    return(newCoords)
-
-def objAdjustVertex(coords):
-    newCoords = objTranslate(objScale(objRotate(coords,tfil.config["objRotate"])))
-    return(newCoords)
-
-# Loads STL unpacking the triangle vertices stored as binary data.
-def loadBinarySTL(filename):
+# Loads STLs unpacking the triangle vertices stored as binary data.
+def loadBinarySTLs(filenames):
     global numFaces
-    with open(filename, 'rb') as stl:
-        # Reading past header (first 80 bytes) (1.3.11.1)
-        stl.read(80)
-        # Number of triangles (4 bytes) (1.3.11.1)
-        numFaces = struct.unpack('i', stl.read(4))[0]
-        print('Number of faces:' + str(numFaces))
-        faces = np.zeros((numFaces,5,3))
-        print("Faces:")
-        for i in range(numFaces): 
-            # For each triangle (1.3.11.2)
-            # Datatype 'i' is 4 bytes, datatype 'iii' is 12 bytes
-            stl.read(12) # reading past normal
-            faces[i][1] = objAdjustVertex(struct.unpack('fff', stl.read(12))) # Vertex 1
-            faces[i][2] = objAdjustVertex(struct.unpack('fff', stl.read(12))) # Vertex 2
-            faces[i][3] = objAdjustVertex(struct.unpack('fff', stl.read(12))) # Vertex 3
-            # Calculating Normal
-            AB = np.subtract(faces[i][2],faces[i][1])
-            AC = np.subtract(faces[i][3],faces[i][1])
-            faces[i][0] = np.cross(AB,AC)
-            # d value for plane equation of v1.N=d, storing with triangle in faces[i][4][0]
-            faces[i][4][0] = np.dot(faces[i][1], faces[i][0])
-            # Null buffer
-            stl.read(2)
-            print(faces[i])
-        print(i)
-    return(faces)
+    faces = []
+    numFaces = 0
+    for fn in range(len(filenames)):
+        with open(filenames[fn], 'rb') as stl:
+            # Reading past header (first 80 bytes) (1.3.11.1)
+            stl.read(80)
+            # Number of triangles (4 bytes) (1.3.11.1)
+            fileNumFaces = struct.unpack('i', stl.read(4))[0]
+            # faces = np.zeros((fileNumFaces,5,3))
+            print("Faces:")
+            for i in range(fileNumFaces): 
+                face = np.zeros((5,3))
+                # For each triangle (1.3.11.2)
+                # Datatype 'f' is 4 bytes, datatype 'fff' is 12 bytes
+                stl.read(12) # reading past normal
+                face[1] = objAdjustVertex(struct.unpack('fff', stl.read(12)),fn) # Vertex 1
+                face[2] = objAdjustVertex(struct.unpack('fff', stl.read(12)),fn) # Vertex 2
+                face[3] = objAdjustVertex(struct.unpack('fff', stl.read(12)),fn) # Vertex 3
+                # Calculating Normal
+                AB = np.subtract(face[2],face[1])
+                AC = np.subtract(face[3],face[1])
+                face[0] = np.cross(AB,AC)
+                # d value for plane equation of v1.N=d, storing with triangle in face[4][0]
+                face[4][0] = np.dot(face[1], face[0])
+                # Null buffer
+                stl.read(2)
+                print(face)
+                faces.append(face)
+            # print(i)
+            numFaces += fileNumFaces
+    print('Number of faces:' + str(numFaces))
+    return(np.array(faces))
+
 def loadLightSources(filename):
     global numLights
     lights = np.array(tfil.readJson(filename))
@@ -112,5 +117,5 @@ def testInBounds(face,point):
     # Check if O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
     result = 0<=np.around(OlamBC,tfil.config["decimalAccuracy"]) and np.around(OlamBC,tfil.config["decimalAccuracy"])<=1 and 0<=np.around(ImewAO,tfil.config["decimalAccuracy"]) and np.around(ImewAO,tfil.config["decimalAccuracy"])<1
     return(result)
-faces = loadBinarySTL(tfil.config["stlFile"])
+faces = loadBinarySTLs(tfil.config["stlFiles"])
 lights = loadLightSources(tfil.config["lightSources"])
