@@ -89,11 +89,11 @@ def testInBounds(face,point):
     TimeA = time.time()
     c1 = np.subtract(i,a)
     c2 = np.subtract(c,b)
-    c3 = np.cross(c1,c2)
     TimeB = time.time()
-    denominator = c3[0]**2+c3[1]**2+c3[2]**2
+    c3 = np.cross(c1,c2)
     TimeC = time.time()
-    denominator = np.linalg.norm(c3)**2
+    denominator = c3[0]**2+c3[1]**2+c3[2]**2
+    # denominator = np.linalg.norm(c3)**2
     TimeD = time.time()
     if 0 == denominator :
         # print ("Zero division error: ray is parallel to a face plane")
