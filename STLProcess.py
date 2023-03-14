@@ -114,7 +114,7 @@ def testInBounds(face,point):
     else:
         print ("Zero division error: Coordinates O and A are the same")
         return(False)
-    # Check if O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
+    # Is O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
     result = 0<=np.around(OlamBC,tfil.config["decimalAccuracy"]) and np.around(OlamBC,tfil.config["decimalAccuracy"])<=1 and 0<=np.around(ImewAO,tfil.config["decimalAccuracy"]) and np.around(ImewAO,tfil.config["decimalAccuracy"])<1
     return(result)
 faces = loadBinarySTLs(tfil.config["stlFiles"])

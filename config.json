@@ -1,6 +1,6 @@
 {"objScale":[[1,1,1],[1,1,1]],
-"objTranslate":[[50,200,30],[0,200,50]],
-"objRotate":[[0,0,0],[0,0,0.2]],
+"objTranslate":[[45,200,20]],
+"objRotate":[[-0.5,0,-0.5]],
 "resolution":[100,100],
 "cameraSize":[50,50],
 "focalPoint":[0,-100,0],
@@ -16,4 +16,4 @@
 "lightPlaneNorm":[0,1,0],
 "lightSources":"lightSources.json",
 "outputFileName":"eggTest1x1.png",
-"stlFiles":["knight.stl","houseExa.stl"]}
+"stlFiles":["knight.stl"]}
