@@ -2,6 +2,8 @@ import numpy as np
 import struct
 import math
 import tfil
+import time
+times = [0,0,0,0]
 tfil.getConfig()
 # Adjusts scale of 3d object coordinates
 def objRotate(coords,rots):
@@ -81,9 +83,18 @@ def testInBounds(face,point):
     c = face[3] 
     i = point
     # O is Where AI meets BC (Figure 2.1.1.15c)
-
-    numerator = np.dot(np.cross(np.subtract(b,a),np.subtract(c,b)),np.cross(np.subtract(i,a),np.subtract(c,b)))
-    denominator = np.linalg.norm(np.cross(np.subtract(i,a),np.subtract(c,b)))**2
+    c1 = np.cross(np.subtract(b,a),np.subtract(c,b))
+    c2 = np.cross(np.subtract(i,a),np.subtract(c,b))
+    numerator = np.dot(c1,c2)
+    TimeA = time.time()
+    c1 = np.subtract(i,a)
+    c2 = np.subtract(c,b)
+    c3 = np.cross(c1,c2)
+    TimeB = time.time()
+    denominator = c3[0]**2+c3[1]**2+c3[2]**2
+    TimeC = time.time()
+    denominator = np.linalg.norm(c3)**2
+    TimeD = time.time()
     if 0 == denominator :
         # print ("Zero division error: ray is parallel to a face plane")
         return(False)
@@ -101,7 +112,6 @@ def testInBounds(face,point):
     else:
         print ("Zero division error: Coordinates B and C are the same")
         return(False)
-
     # Mew for location of I on line AO (Figure 3.1.1.y)
     if o[0]!=a[0]:
         ImewAO = (i[0]-a[0])/(o[0]-a[0])
@@ -116,6 +126,9 @@ def testInBounds(face,point):
         return(False)
     # Is O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
     result = 0<=np.around(OlamBC,tfil.config["decimalAccuracy"]) and np.around(OlamBC,tfil.config["decimalAccuracy"])<=1 and 0<=np.around(ImewAO,tfil.config["decimalAccuracy"]) and np.around(ImewAO,tfil.config["decimalAccuracy"])<1
+    times[1] += TimeB-TimeA
+    times[2] += TimeC-TimeB
+    times[3] += TimeD-TimeC
     return(result)
 faces = loadBinarySTLs(tfil.config["stlFiles"])
 lights = loadLightSources(tfil.config["lightSources"])

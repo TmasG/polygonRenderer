@@ -51,12 +51,15 @@ def firstIntersection(point, inters):
 def testForIntersections(point,vector,faces,facesLength):
     inters = []
     for l in range(facesLength):
+        c = time.time()
         intersection = lineFaceInter(point,vector,faces[l])
+        d = time.time()
         # If there is an intersection and said intersection is in front of the ray
         if intersection[0] and intersection[2]>0:
             if STLProcess.testInBounds(faces[l],intersection[1]):
                 # If intersection is valid
                 inters.append([faces[l],intersection[1]])
+        e = time.time()
     return(inters)
 
 def reflectRay(point,vector,face,count,distance):
@@ -73,9 +76,6 @@ def reflectRay(point,vector,face,count,distance):
         reflectedVector = baseReflectedVector
         # Lambert cosine law
         lambert = 1
-        # print(face[0][0])
-        # exit()
-        baseReflectedVector
         # Recursively simulate the ray
         mult = simulateRay(I, reflectedVector, count+1,distance)
         # Accounting for surface reflectivity and lambert cosine law
@@ -139,6 +139,7 @@ def render():
     focalPoint = np.array(tfil.config["focalPoint"])
     for i in range(tfil.config["resolution"][0]):
         a = time.time()
+        STLProcess.times = [0,0,0,0]
         for j in range(tfil.config["resolution"][1]):
             subPixels = 0
             for x in range(tfil.config["subRays"][0]):
@@ -149,7 +150,8 @@ def render():
                     ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector))
                     subPixels += calcLightIntensity(ray[0],ray[1])*tfil.config["gain"]
             pixels[i][j] = 255*subPixels/(tfil.config["subRays"][0])
-        print(i, str(time.time()-a))
+        STLProcess.times[0] = time.time()-a
+        print(i, str(STLProcess.times))
     # Ạdding a test pixel halfway along the x and y axes
     pixels[int(tfil.config["resolution"][0]/2)-1][0] = 255
     pixels[0][int(tfil.config["resolution"][1]/2)-1] = 255
