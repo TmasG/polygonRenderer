@@ -90,6 +90,7 @@ def calcLightIntensity(power,distance):
     
 def simulateRay(point, vector, count,distance):
     # Terminate ray if too old?
+    TimeA = time.time()
     if count > tfil.config["maxBounces"]:
         return(0,0)
     # Does ray intersect with and light sources?
@@ -98,15 +99,17 @@ def simulateRay(point, vector, count,distance):
     lInter = len(lightInters) != 0
     if len(lightInters) != 0:
         light = firstIntersection(point, lightInters)
+    TimeB = time.time()
     # Does ray intersect with any faces?
     faceInters = testForIntersections(point,vector,STLProcess.faces,STLProcess.numFaces)
+    # faceInters = []
     # Going through each valid face intersection and finding the first one to occur
     fInter = len(faceInters) != 0
+    TimeC = time.time()
     if len(faceInters) != 0:
         face = firstIntersection(point, faceInters)
         fMult = reflectRay(point,vector,face,count,distance)
-        # fMult = calcLightIntensity(face[1],fMult) 
-
+    TimeD = time.time()
     # bMult represents the brightness multiplier
     if fInter or lInter:
         if lInter: 
@@ -131,6 +134,9 @@ def simulateRay(point, vector, count,distance):
         # No intersections
         bMult = 0
         # print("a")
+    STLProcess.times[1] += TimeB-TimeA
+    STLProcess.times[2] += TimeC-TimeB
+    STLProcess.times[3] += TimeD-TimeC
     return(bMult,distance)
     
 def render():
@@ -149,6 +155,7 @@ def render():
                     rayVector = np.subtract(pixel,focalPoint)
                     ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector))
                     subPixels += calcLightIntensity(ray[0],ray[1])*tfil.config["gain"]
+                    # subPixels += ray[0]*tfil.config["gain"]
             pixels[i][j] = 255*subPixels/(tfil.config["subRays"][0])
         STLProcess.times[0] = time.time()-a
         print(i, str(STLProcess.times))

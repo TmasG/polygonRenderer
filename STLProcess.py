@@ -82,29 +82,29 @@ def testInBounds(face,point):
     b = face[2]
     c = face[3] 
     i = point
+    # TimeA = time.time()
+    ab = np.subtract(b,a)
+    ai = np.subtract(i,a)
+    bc = np.subtract(c,b)
+    # TimeB = time.time()
     # O is Where AI meets BC (Figure 2.1.1.15c)
-    c1 = np.cross(np.subtract(b,a),np.subtract(c,b))
-    c2 = np.cross(np.subtract(i,a),np.subtract(c,b))
-    numerator = np.dot(c1,c2)
-    TimeA = time.time()
-    c1 = np.subtract(i,a)
-    c2 = np.subtract(c,b)
-    TimeB = time.time()
-    c3 = np.cross(c1,c2)
-    TimeC = time.time()
-    denominator = c3[0]**2+c3[1]**2+c3[2]**2
+    # TimeC = time.time()
+    c2 = np.cross(ai,bc)
+    numerator = np.dot(ai,ab)*np.dot(bc,bc)-np.dot(bc,ai)*np.dot(ab,bc)
+    # TimeD = time.time()
+    # c3 = np.cross(ai,bc)
+    denominator = c2[0]**2+c2[1]**2+c2[2]**2
     # denominator = np.linalg.norm(c3)**2
-    TimeD = time.time()
     if 0 == denominator :
         # print ("Zero division error: ray is parallel to a face plane")
         return(False)
-    o = np.add(a,(np.subtract(i,a))*(numerator/denominator))
+    o = np.add(a,(ai)*(numerator/denominator))
     # Lambda for location of O on line BC (Figure 3.1.1.y)
     if b[0]!=c[0]:
         # print ("Zero division error: Bx==Cx")
         OlamBC = (o[0]-b[0])/(c[0]-b[0])
     elif b[1]!=c[1]:
-        # print ("Zero division error: By==Cy")
+        print ("Zero division error: By==Cy")
         OlamBC = (o[1]-b[1])/(c[1]-b[1])
     elif b[2]!=c[2]:
         # print ("Zero division error: Bz==Cz" + str(np.equal(b,c)))
@@ -125,10 +125,11 @@ def testInBounds(face,point):
         print ("Zero division error: Coordinates O and A are the same")
         return(False)
     # Is O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
+    # TimeC = time.time()
     result = 0<=np.around(OlamBC,tfil.config["decimalAccuracy"]) and np.around(OlamBC,tfil.config["decimalAccuracy"])<=1 and 0<=np.around(ImewAO,tfil.config["decimalAccuracy"]) and np.around(ImewAO,tfil.config["decimalAccuracy"])<1
-    times[1] += TimeB-TimeA
-    times[2] += TimeC-TimeB
-    times[3] += TimeD-TimeC
+    # times[1] += TimeB-TimeA
+    # times[2] += TimeC-TimeB
+    # times[3] += TimeD-TimeC
     return(result)
 faces = loadBinarySTLs(tfil.config["stlFiles"])
 lights = loadLightSources(tfil.config["lightSources"])
