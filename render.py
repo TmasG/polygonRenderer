@@ -46,7 +46,7 @@ def firstIntersection(point, inters):
             minInterFace = inters[m][0]
             inter = inters[m][1]
         minDistance = distance
-    return(minInterFace,minDistance,inter)
+    return([minInterFace,minDistance,inter])
 
 def testForIntersections(point,vector,faces,facesLength):
     inters = []
@@ -112,7 +112,7 @@ def simulateRay(point, vector, count,distance):
     TimeD = time.time()
     # bMult represents the brightness multiplier
     if fInter or lInter:
-        if lInter: 
+        if lInter:
             if fInter:
                 if face[1] < light[1]:
                     # Face in front

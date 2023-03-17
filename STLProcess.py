@@ -87,7 +87,7 @@ def testInBounds(face,point):
     ai = np.subtract(i,a)
     bc = np.subtract(c,b)
     # TimeB = time.time()
-    # O is Where AI meets BC (Figure 2.1.1.15c)
+    # O is Where AI meets BC (Figure 3.1.1.7)
     # TimeC = time.time()
     c2 = np.cross(ai,bc)
     numerator = np.dot(ai,ab)*np.dot(bc,bc)-np.dot(bc,ai)*np.dot(ab,bc)
@@ -99,12 +99,12 @@ def testInBounds(face,point):
         # print ("Zero division error: ray is parallel to a face plane")
         return(False)
     o = np.add(a,(ai)*(numerator/denominator))
-    # Lambda for location of O on line BC (Figure 3.1.1.y)
+    # Lambda for location of O on line BC (Figure 3.1.1.7)
     if b[0]!=c[0]:
         # print ("Zero division error: Bx==Cx")
         OlamBC = (o[0]-b[0])/(c[0]-b[0])
     elif b[1]!=c[1]:
-        print ("Zero division error: By==Cy")
+        # print ("Zero division error: By==Cy")
         OlamBC = (o[1]-b[1])/(c[1]-b[1])
     elif b[2]!=c[2]:
         # print ("Zero division error: Bz==Cz" + str(np.equal(b,c)))
@@ -112,7 +112,7 @@ def testInBounds(face,point):
     else:
         print ("Zero division error: Coordinates B and C are the same")
         return(False)
-    # Mew for location of I on line AO (Figure 3.1.1.y)
+    # Mew for location of I on line AO (Figure 3.1.1.7)
     if o[0]!=a[0]:
         ImewAO = (i[0]-a[0])/(o[0]-a[0])
     elif o[1]!=a[1]:
@@ -124,7 +124,7 @@ def testInBounds(face,point):
     else:
         print ("Zero division error: Coordinates O and A are the same")
         return(False)
-    # Is O is in bounds of BC and I is in bounds of AO (Figure 3.1.1.x)
+    # Is O is in bounds of BC and I is in bounds of AO
     # TimeC = time.time()
     result = 0<=np.around(OlamBC,tfil.config["decimalAccuracy"]) and np.around(OlamBC,tfil.config["decimalAccuracy"])<=1 and 0<=np.around(ImewAO,tfil.config["decimalAccuracy"]) and np.around(ImewAO,tfil.config["decimalAccuracy"])<1
     # times[1] += TimeB-TimeA
