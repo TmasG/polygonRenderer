@@ -4,9 +4,11 @@
 "resolution":[50,50],
 "cameraSize":[50,50],
 "focalPoint":[0,-100,0],
-"rayChildren":1,
+"specularChildren":1,
+"diffuseChildren":0,
 "subRays":[1,1],
 "surfaceReflectivity":1,
+"surfaceDiffusivity":0,
 "maxBounces":4,
 "gain":1.4,
 "renderType":"perspective",
@@ -16,4 +18,4 @@
 "lightPlaneNorm":[0,1,0],
 "lightSources":"lightSources.json",
 "outputFileName":"eggTest1x1Actual.png",
-"stlFiles":["knight.stl","boxWall.stl"]}
+"stlFiles":["knight.stl"]}

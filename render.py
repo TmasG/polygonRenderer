@@ -50,27 +50,32 @@ def firstIntersection(point, inters):
 
 def testForIntersections(point,vector,faces,facesLength):
     inters = []
+    TimeA = time.time()
     for l in range(facesLength):
-        c = time.time()
+        TimeC = time.time()
         intersection = lineFaceInter(point,vector,faces[l])
-        d = time.time()
         # If there is an intersection and said intersection is in front of the ray
         if intersection[0] and intersection[2]>0:
             if STLProcess.testInBounds(faces[l],intersection[1]):
                 # If intersection is valid
                 inters.append([faces[l],intersection[1]])
-        e = time.time()
+        TimeD = time.time()
+        STLProcess.times[3] += TimeD-TimeC
+    TimeB = time.time()
+    STLProcess.times[1] += TimeB-TimeA
+    # STLProcess.times[2] += TimeC-TimeB
+    # STLProcess.times[3] += TimeD-TimeC
     return(inters)
 
 def reflectRay(point,vector,face,count,distance):
-    mults = 0
     N = face[0][0]
     d = face[0][4][0]
     I = face[2]
     A = np.subtract(I,vector)
     M=np.add(A,((d-np.dot(A,N))/np.dot(N,N))*N)
     baseReflectedVector = np.add(I,np.subtract(A,2*M))
-    for i in range(tfil.config["rayChildren"]):
+    specMults = 0
+    for i in range(tfil.config["specularChildren"]):
         # For each child ray
         # Varying direction of child rays
         reflectedVector = baseReflectedVector
@@ -80,9 +85,29 @@ def reflectRay(point,vector,face,count,distance):
         mult = simulateRay(I, reflectedVector, count+1,distance)
         # Accounting for surface reflectivity and lambert cosine law
         distance += mult[1]
-        mults += mult[0]*(tfil.config["surfaceReflectivity"] * lambert)
+        # Specular Component
+        specMults += mult[0]*tfil.config["surfaceReflectivity"]
+        # Difuse Component
+        specMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
     # Calculate average of all children
-    fMult = mults/tfil.config["rayChildren"]
+    spec = specMults/tfil.config["specularChildren"]
+    diff = 0
+    if tfil.config["diffuseChildren"]!=0:
+        diffMults = 0
+        for i in range(tfil.config["diffuseChildren"]):
+            # For each child ray
+            # Varying direction of child rays
+            reflectedVector = baseReflectedVector
+            lambert = 1
+            # Recursively simulate the ray
+            mult = simulateRay(I, reflectedVector, count+1,distance)
+            distance += mult[1]
+            # Difuse Component
+            # Accounting for surface reflectivity and lambert cosine law
+            diffMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
+        # Calculate average of all children
+        diff = diffMults/tfil.config["diffuseChildren"]
+    fMult = spec+diff
     return(fMult,distance)
 
 def calcLightIntensity(power,distance):
@@ -90,7 +115,6 @@ def calcLightIntensity(power,distance):
     
 def simulateRay(point, vector, count,distance):
     # Terminate ray if too old?
-    TimeA = time.time()
     if count > tfil.config["maxBounces"]:
         return(0,0)
     # Does ray intersect with and light sources?
@@ -99,17 +123,14 @@ def simulateRay(point, vector, count,distance):
     lInter = len(lightInters) != 0
     if len(lightInters) != 0:
         light = firstIntersection(point, lightInters)
-    TimeB = time.time()
     # Does ray intersect with any faces?
     faceInters = testForIntersections(point,vector,STLProcess.faces,STLProcess.numFaces)
     # faceInters = []
     # Going through each valid face intersection and finding the first one to occur
     fInter = len(faceInters) != 0
-    TimeC = time.time()
     if len(faceInters) != 0:
         face = firstIntersection(point, faceInters)
         fMult = reflectRay(point,vector,face,count,distance)
-    TimeD = time.time()
     # bMult represents the brightness multiplier
     if fInter or lInter:
         if lInter:
@@ -134,9 +155,6 @@ def simulateRay(point, vector, count,distance):
         # No intersections
         bMult = 0
         # print("a")
-    STLProcess.times[1] += TimeB-TimeA
-    STLProcess.times[2] += TimeC-TimeB
-    STLProcess.times[3] += TimeD-TimeC
     return(bMult,distance)
     
 def render():
