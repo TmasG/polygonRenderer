@@ -11,19 +11,19 @@ def saveImage(pixels):
 
 def lineFaceInter(point,vector,face):
     N = face[0]
-    d = face[4][0]
     P = point
     V = vector
-    x = 0
-    if np.dot(N,V) == 0:
+    NdotV = N[0]*V[0]+N[1]*V[1]+N[2]*V[2]
+    inter = NdotV != 0
+    if inter:
+        # x = (d-dot(N,P))/(dot(N,V))
+        x = (face[4][0]-(N[0]*P[0]+N[1]*P[1]+N[2]*P[2]))/NdotV
+        r = np.add(P,V*x)
+    else:
         # print("N perpendicular to V", str(N), str(V))
         #  Fix this, this shouble reflect back the ray (i think)
-        inter = False
+        x = 0
         r = [0,0,0]
-    else:
-        inter = True
-        x = (d-np.dot(N,P))/(np.dot(N,V)) 
-        r = np.add(P,V*x)
     # returns if there is an intersection and the location and distance if so
     return(inter,r,x)
 
@@ -50,21 +50,20 @@ def firstIntersection(point, inters):
 
 def testForIntersections(point,vector,faces,facesLength):
     inters = []
-    TimeA = time.time()
     for l in range(facesLength):
-        TimeC = time.time()
         intersection = lineFaceInter(point,vector,faces[l])
         # If there is an intersection and said intersection is in front of the ray
         if intersection[0] and intersection[2]>0:
             if STLProcess.testInBounds(faces[l],intersection[1]):
                 # If intersection is valid
                 inters.append([faces[l],intersection[1]])
-        TimeD = time.time()
-        STLProcess.times[3] += TimeD-TimeC
+    TimeA = time.time()
     TimeB = time.time()
+    TimeC = time.time()
+    TimeD = time.time()
     STLProcess.times[1] += TimeB-TimeA
-    # STLProcess.times[2] += TimeC-TimeB
-    # STLProcess.times[3] += TimeD-TimeC
+    STLProcess.times[2] += TimeC-TimeB
+    STLProcess.times[3] += TimeD-TimeC
     return(inters)
 
 def reflectRay(point,vector,face,count,distance):
