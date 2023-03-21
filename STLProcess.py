@@ -103,13 +103,12 @@ def testInBounds(face,point):
         a[2]+p[2]]
     # Lambda for location of O on line BC (Figure 3.1.1.7)
     if b[0]!=c[0]:
-        # print ("Zero division error: Bx==Cx")
         OlamBC = (o[0]-b[0])/(c[0]-b[0])
     elif b[1]!=c[1]:
-        # print ("Zero division error: By==Cy")
+        # print ("Zero division error: Bx==Cx")
         OlamBC = (o[1]-b[1])/(c[1]-b[1])
     elif b[2]!=c[2]:
-        # print ("Zero division error: Bz==Cz")
+        # print ("Zero division error: By==Cy")
         OlamBC = (o[2]-b[2])/(c[2]-b[2])
     else:
         print ("Zero division error: Coordinates B and C are the same")

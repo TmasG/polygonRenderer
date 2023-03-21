@@ -14,7 +14,7 @@ def lineFaceInter(point,vector,face):
     P = point
     V = vector
     NdotV = N[0]*V[0]+N[1]*V[1]+N[2]*V[2]
-    inter = NdotV != 0
+    inter = not (NdotV == 0)
     if inter:
         # x = (d-dot(N,P))/(dot(N,V))
         x = (face[4][0]-(N[0]*P[0]+N[1]*P[1]+N[2]*P[2]))/NdotV
@@ -50,6 +50,7 @@ def firstIntersection(point, inters):
 
 def testForIntersections(point,vector,faces,facesLength):
     inters = []
+    TimeA = time.time()
     for l in range(facesLength):
         intersection = lineFaceInter(point,vector,faces[l])
         # If there is an intersection and said intersection is in front of the ray
@@ -57,13 +58,6 @@ def testForIntersections(point,vector,faces,facesLength):
             if STLProcess.testInBounds(faces[l],intersection[1]):
                 # If intersection is valid
                 inters.append([faces[l],intersection[1]])
-    TimeA = time.time()
-    TimeB = time.time()
-    TimeC = time.time()
-    TimeD = time.time()
-    STLProcess.times[1] += TimeB-TimeA
-    STLProcess.times[2] += TimeC-TimeB
-    STLProcess.times[3] += TimeD-TimeC
     return(inters)
 
 def reflectRay(point,vector,face,count,distance):
@@ -71,7 +65,7 @@ def reflectRay(point,vector,face,count,distance):
     d = face[0][4][0]
     I = face[2]
     A = np.subtract(I,vector)
-    M=np.add(A,((d-np.dot(A,N))/np.dot(N,N))*N)
+    M = np.add(A,((d-(A[0]*N[0]+A[1]*N[1]+A[2]*N[2]))/(N[0]*N[0]+N[1]*N[1]+N[2]*N[2]))*N)
     baseReflectedVector = np.add(I,np.subtract(A,2*M))
     specMults = 0
     for i in range(tfil.config["specularChildren"]):
