@@ -168,11 +168,22 @@ def render():
                     subPixels += calcLightIntensity(ray[0],ray[1])*tfil.config["gain"]
                     # subPixels += ray[0]*tfil.config["gain"]
             pixels[i][j] = 255*subPixels/(tfil.config["subRays"][0])
+            # Debugging
+            # Errornous Black
+            if (i == 23 and j == 3) or (i == 22 and j == 3) or (i == 23 and j == 24):
+                print("EB:", pixel, rayVector, ray, pixels[23][3],subPixels)
+                pixels[23][23] = 255
+            # Correct Black
+            if (i==24 and j==0) or (i == 0 and j == 5) or (i == 48 and j == 20):
+                print("CB:", pixel, rayVector, ray, pixels[23][3],subPixels)
+            # Correct white
+            if (i==23 and j ==2) or (i == 19 and j == 2) or (i == 22 and j == 2):
+                print("CW:", pixel, rayVector, ray, pixels[23][3],subPixels)
         STLProcess.times[0] = time.time()-a
         print(i, str(STLProcess.times))
     # Ạdding a test pixel halfway along the x and y axes
     pixels[int(tfil.config["resolution"][0]/2)-1][0] = 255
-    pixels[0][int(tfil.config["resolution"][1]/2)-1] = 255
+    pixels[0][int(tfil.config["resolution"][1]/2)-1] = 25
     return(switchXY(pixels))
 
 a = time.time()
@@ -189,3 +200,19 @@ saveImage(pixels)
 
 # Todo:
 # still need to do distribution and lambert
+
+
+# Debugging:
+# if (i == 23 and j == 3) or (i==24 and j==0) or (i==25 and j ==3):
+    # print(pixel, rayVector, ray, pixels[23][3],subPixels)
+
+# Result:
+
+# Erroneously black
+# [11.5  0.   1.5] [ 11.5 100.    1.5] (0.0, 402.68101519689253) 0.0 0.0
+
+# Normal black:
+# [12.  0.  0.] [ 12. 100.   0.] (0, 100.71742649611338) 0.0 0.0
+
+# Normal white:
+# [12.5  0.   1.5] [ 12.5 100.    1.5] (3000000.0, 634.5512429875821) 0.0 0.8300533908607891
