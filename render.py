@@ -66,41 +66,55 @@ def reflectRay(point,vector,face,count,distance):
     I = face[2]
     A = np.subtract(I,vector)
     M = np.add(A,((d-(A[0]*N[0]+A[1]*N[1]+A[2]*N[2]))/(N[0]*N[0]+N[1]*N[1]+N[2]*N[2]))*N)
-    baseReflectedVector = np.add(I,np.subtract(A,2*M))
+    V = np.add(I,np.subtract(A,2*M))
     specMults = 0
-    for i in range(tfil.config["specularChildren"]):
+    # For each Specular ray
+    # Lambert cosine law
+    lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(V[0]*V[0]*V[1]*V[1]*V[2]*N[2]*N[0]*N[0]*N[1]*N[1]*N[2]*N[2])
+    # Recursively simulate the ray
+    mult = simulateRay(I, V, count+1,distance)
+    # Accounting for surface reflectivity and lambert cosine law
+    distance += mult[1]
+    # Specular Component
+    specMults += mult[0]*tfil.config["surfaceReflectivity"]
+    # Difuse Component
+    specMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
+    # Calculate average of all children
+    spec = specMults
+    gloss = 0
+    glossMults = 0
+    for i in range(tfil.config["glossyChildren"]):
         # For each child ray
         # Varying direction of child rays
-        reflectedVector = baseReflectedVector
-        # Lambert cosine law
-        lambert = 1
+        # Should vary around the normal
+        V = N
+        multiplier = 0
         # Recursively simulate the ray
-        mult = simulateRay(I, reflectedVector, count+1,distance)
-        # Accounting for surface reflectivity and lambert cosine law
+        mult = simulateRay(I, V, count+1,distance)
         distance += mult[1]
-        # Specular Component
-        specMults += mult[0]*tfil.config["surfaceReflectivity"]
         # Difuse Component
-        specMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
+        # Accounting for surface reflectivity and lambert cosine law
+        glossMults += mult[0]*tfil.config["surfaceGlossyness"]*multiplier
     # Calculate average of all children
-    spec = specMults/tfil.config["specularChildren"]
+    gloss = diffMults/tfil.config["diffuseChildren"]
+
     diff = 0
-    if tfil.config["diffuseChildren"]!=0:
-        diffMults = 0
-        for i in range(tfil.config["diffuseChildren"]):
-            # For each child ray
-            # Varying direction of child rays
-            reflectedVector = baseReflectedVector
-            lambert = 1
-            # Recursively simulate the ray
-            mult = simulateRay(I, reflectedVector, count+1,distance)
-            distance += mult[1]
-            # Difuse Component
-            # Accounting for surface reflectivity and lambert cosine law
-            diffMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
-        # Calculate average of all children
-        diff = diffMults/tfil.config["diffuseChildren"]
-    fMult = spec+diff
+    diffMults = 0
+    for i in range(tfil.config["diffuseChildren"]):
+        # For each child ray
+        # Varying direction of child rays
+        # Should vary around the normal
+        V = N
+        lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(V[0]*V[0]*V[1]*V[1]*V[2]*N[2]*N[0]*N[0]*N[1]*N[1]*N[2]*N[2])
+        # Recursively simulate the ray
+        mult = simulateRay(I, V, count+1,distance)
+        distance += mult[1]
+        # Difuse Component
+        # Accounting for surface reflectivity and lambert cosine law
+        diffMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
+    # Calculate average of all children
+    diff = diffMults/tfil.config["diffuseChildren"]
+    fMult = spec+diff+gloss
     return(fMult,distance)
 
 def calcLightIntensity(power,distance):
