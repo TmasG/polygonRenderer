@@ -33,7 +33,7 @@ def loadBinarySTLs(filenames):
             stl.read(80)
             # Number of triangles (4 bytes) (1.3.11.1)
             fileNumFaces = struct.unpack('i', stl.read(4))[0]
-            print("Faces:")
+            # print("Faces:")
             for i in range(fileNumFaces): 
                 face = np.zeros((5,3))
                 # For each triangle (1.3.11.2)
@@ -50,7 +50,7 @@ def loadBinarySTLs(filenames):
                 face[4][0] = np.dot(face[1], face[0])
                 # Null buffer
                 stl.read(2)
-                print(face)
+                # print(face)
                 faces.append(face)
             # print(i)
             numFaces += fileNumFaces
