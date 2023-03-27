@@ -60,6 +60,13 @@ def testForIntersections(point,vector,faces,facesLength):
                 inters.append([faces[l],intersection[1]])
     return(inters)
 
+def rotate(A,B,theta):
+    # Function to rotate vector A around vector B by angle theta:
+    # Code:
+    # Normalising  B:
+    B = B/np.linalg.norm(B)
+    vec = np.add(np.add(np.multiply(np.cos(theta),A),np.multiply(np.sin(theta),np.cross(B,A))),np.multiply(np.dot(B,A)*(1-np.cos(theta)),B))
+    return(vec)
 def reflectRay(point,vector,face,count,distance, debug):
     N = face[0][0]
     d = face[0][4][0]
@@ -79,7 +86,7 @@ def reflectRay(point,vector,face,count,distance, debug):
     specMults += mult[0]*tfil.config["surfaceReflectivity"]
     # Difuse Component
     specMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
-    spec = specMults
+    spec = calcLightIntensity(specMults,mult[1])
     gloss = 0
     if tfil.config["glossyChildren"] !=0:
         glossMults = 0
@@ -91,31 +98,35 @@ def reflectRay(point,vector,face,count,distance, debug):
             multiplier = 0
             # Recursively simulate the ray
             mult = simulateRay(I, V, count+1,distance, debug)
-            distance += mult[1]
             # Difuse Component
             # Accounting for surface reflectivity and lambert cosine law
             glossMults += mult[0]*tfil.config["surfaceGlossyness"]*multiplier
         # Calculate average of all children
-        gloss = diffMults/tfil.config["diffuseChildren"]
+        gloss = calcLightIntensity(diffMults/tfil.config["diffuseChildren"],mult[1])
 
     diff = 0
-    if tfil.config["diffuseChildren"] !=0:
+    if tfil.config["diffuseChildren"][0] !=0 and tfil.config["diffuseChildren"][1] != 0:
         diffMults = 0
-        for i in range(tfil.config["diffuseChildren"]):
-            # For each child ray
-            # Varying direction of child rays
-            # Should vary around the normal
-            V = N
-            lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(V[0]*V[0]*V[1]*V[1]*V[2]*N[2]*N[0]*N[0]*N[1]*N[1]*N[2]*N[2])
-            # Recursively simulate the ray
-            mult = simulateRay(I, V, count+1,distance, debug)
-            distance += mult[1]
-            # Difuse Component
-            # Accounting for surface reflectivity and lambert cosine law
-            diffMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
+        for n in range(tfil.config["diffuseChildren"][0]):
+            C = np.cross(N,[N[0],N[1],0])
+            theta = 2*np.pi*n/tfil.config["diffuseChildren"][0]
+            # Rotate normal around perpendicular vector to normal
+            vec = np.add(rotate(N,C,theta), N)
+            for m in range(tfil.config["diffuseChildren"][1]):
+                alpha = np.pi*m/tfil.config["diffuseChildren"][1]
+                # For each child ray
+                # Varying direction of child rays
+                # Rotate around  normal
+                V = rotate(vec,N,alpha)
+                lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(V[0]*V[0]*V[1]*V[1]*V[2]*N[2]*N[0]*N[0]*N[1]*N[1]*N[2]*N[2])
+                # Recursively simulate the ray
+                mult = simulateRay(I, V, count+1,distance, debug)
+                # Diffuse Component
+                # Accounting for surface reflectivity and lambert cosine law
+                diffMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
         # Calculate average of all children
-        diff = diffMults/tfil.config["diffuseChildren"]
-    fMult = spec+diff+gloss
+        diff = calcLightIntensity(diffMults/tfil.config["diffuseChildren"],mult[1])
+    fMult = spec+gloss+diff
     return(fMult,distance)
 
 def calcLightIntensity(power,distance):
@@ -184,7 +195,8 @@ def render():
                     pixel = np.array([tfil.config["cameraSize"][0]/tfil.config["resolution"][0]*(i/2+x/tfil.config["subRays"][0]),0,tfil.config["cameraSize"][1]/tfil.config["resolution"][1]*(j/2+y/tfil.config["subRays"][1])])
                     rayVector = np.subtract(pixel,focalPoint)
                     ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector),False)
-                    subPixels += calcLightIntensity(ray[0],ray[1])*tfil.config["gain"]
+                    subPixels += ray[0]*tfil.config["gain"]
+                    # subPixels += calcLightIntensity(ray[0],ray[1])*tfil.config["gain"]
                     # subPixels += ray[0]*tfil.config["gain"]
             pixels[i][j] = 255*subPixels/(tfil.config["subRays"][0])
         STLProcess.times[0] = time.time()-a

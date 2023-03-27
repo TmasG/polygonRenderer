@@ -5,7 +5,7 @@
 "cameraSize":[50,50],
 "focalPoint":[0,-100,0],
 "glossyChildren":0,
-"diffuseChildren":0,
+"diffuseChildren":[0,0],
 "subRays":[1,1],
 "surfaceReflectivity":1,
 "surfaceGlossyness":0,
