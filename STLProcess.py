@@ -15,8 +15,8 @@ def objRotate(coords,rots):
 def objTranslate(coords,translator):
     newCoords=np.add(coords,translator)
     return(newCoords)
-def objScale(coords,scaler):
-    newCoords = np.multiply(coords,scaler)
+def objScale(coords,scalar):
+    newCoords = np.multiply(coords,scalar)
     return(newCoords)
 def objAdjustVertex(coords,fn):
     newCoords = objTranslate(objScale(objRotate(coords,tfil.config["objRotate"][fn]),tfil.config["objScale"][fn]),tfil.config["objTranslate"][fn])
