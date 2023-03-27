@@ -109,11 +109,11 @@ def reflectRay(point,vector,face,count,distance, debug):
         diffMults = 0
         for n in range(tfil.config["diffuseChildren"][0]):
             C = np.cross(N,[N[0],N[1],0])
-            theta = 2*np.pi*n/tfil.config["diffuseChildren"][0]
+            theta = (n+0.5)*2*np.pi/tfil.config["diffuseChildren"][0]
             # Rotate normal around perpendicular vector to normal
             vec = np.add(rotate(N,C,theta), N)
             for m in range(tfil.config["diffuseChildren"][1]):
-                alpha = np.pi*m/tfil.config["diffuseChildren"][1]
+                alpha = (m+0.5)*np.pi/tfil.config["diffuseChildren"][1]
                 # For each child ray
                 # Varying direction of child rays
                 # Rotate around  normal
@@ -123,9 +123,9 @@ def reflectRay(point,vector,face,count,distance, debug):
                 mult = simulateRay(I, V, count+1,distance, debug)
                 # Diffuse Component
                 # Accounting for surface reflectivity and lambert cosine law
-                diffMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
+                diffMults += calcLightIntensity(mult[0]*tfil.config["surfaceDiffusivity"]*lambert,mult[1])
         # Calculate average of all children
-        diff = calcLightIntensity(diffMults/tfil.config["diffuseChildren"],mult[1])
+        diff = diffMults/(tfil.config["diffuseChildren"][0]*tfil.config["diffuseChildren"][1])
     fMult = spec+gloss+diff
     return(fMult,distance)
 
@@ -197,7 +197,7 @@ def render():
                     ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector),False)
                     subPixels += ray[0]*tfil.config["gain"]
                     # subPixels += calcLightIntensity(ray[0],ray[1])*tfil.config["gain"]
-                    # subPixels += ray[0]*tfil.config["gain"]
+                    # subPixels += ray[0]*tfil.["gain"]
             pixels[i][j] = 255*subPixels/(tfil.config["subRays"][0])
         STLProcess.times[0] = time.time()-a
         print(i, str(STLProcess.times))
