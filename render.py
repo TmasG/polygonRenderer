@@ -67,7 +67,7 @@ def rotate(A,B,theta):
     B = B/np.linalg.norm(B)
     vec = np.add(np.add(np.multiply(np.cos(theta),A),np.multiply(np.sin(theta),np.cross(B,A))),np.multiply(np.dot(B,A)*(1-np.cos(theta)),B))
     return(vec)
-def reflectRay(point,vector,face,count,distance, debug):
+def reflectRay(point,vector,face,count,distance):
     N = face[0][0]
     d = face[0][4][0]
     I = face[2]
@@ -77,9 +77,9 @@ def reflectRay(point,vector,face,count,distance, debug):
     specMults = 0
     # For each Specular ray
     # Lambert cosine law
-    lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*N[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
+    lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
     # Recursively simulate the ray
-    mult = simulateRay(I, V, count+1,distance, debug)
+    mult = simulateRay(I, V, count+1,distance)
     # Accounting for surface reflectivity and lambert cosine law
     distance += mult[1]
     # Specular Component
@@ -97,7 +97,7 @@ def reflectRay(point,vector,face,count,distance, debug):
             V = N
             multiplier = 0
             # Recursively simulate the ray
-            mult = simulateRay(I, V, count+1,distance, debug)
+            mult = simulateRay(I, V, count+1,distance)
             # Difuse Component
             # Accounting for surface reflectivity and lambert cosine law
             glossMults += mult[0]*tfil.config["surfaceGlossyness"]*multiplier
@@ -107,8 +107,12 @@ def reflectRay(point,vector,face,count,distance, debug):
     diff = 0
     if tfil.config["diffuseChildren"][0] !=0 and tfil.config["diffuseChildren"][1] != 0:
         diffMults = 0
+        if N[2] == 0:
+            C = [0,0,1]
+        else:
+            mag = np.sqrt(N[0]*N[0]+N[1]*N[1])
+            C = np.array([N[1],N[0],0])
         for n in range(tfil.config["diffuseChildren"][0]):
-            C = np.cross(N,[N[0],N[1],0])
             theta = (n+0.5)*2*np.pi/tfil.config["diffuseChildren"][0]
             # Rotate normal around perpendicular vector to normal
             vec = np.add(rotate(N,C,theta), N)
@@ -118,9 +122,9 @@ def reflectRay(point,vector,face,count,distance, debug):
                 # Varying direction of child rays
                 # Rotate around  normal
                 V = rotate(vec,N,alpha)
-                lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(V[0]*V[0]*V[1]*V[1]*V[2]*N[2]*N[0]*N[0]*N[1]*N[1]*N[2]*N[2])
+                lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
                 # Recursively simulate the ray
-                mult = simulateRay(I, V, count+1,distance, debug)
+                mult = simulateRay(I, V, count+1,distance)
                 # Diffuse Component
                 # Accounting for surface reflectivity and lambert cosine law
                 diffMults += calcLightIntensity(mult[0]*tfil.config["surfaceDiffusivity"]*lambert,mult[1])
@@ -132,7 +136,7 @@ def reflectRay(point,vector,face,count,distance, debug):
 def calcLightIntensity(power,distance):
     return(power/(4*np.pi*distance**2))
     
-def simulateRay(point, vector, count,distance,debug):
+def simulateRay(point, vector, count,distance):
     # Terminate ray if too old?
     if count > tfil.config["maxBounces"]:
         return(0,0)
@@ -149,11 +153,7 @@ def simulateRay(point, vector, count,distance,debug):
     fInter = len(faceInters) != 0
     if len(faceInters) != 0:
         face = firstIntersection(point, faceInters)
-        fMult = reflectRay(point,vector,face,count,distance, debug)
-    if debug:
-        print(fInter, lInter)
-        if fInter:
-            print(face[1],fMult[0])
+        fMult = reflectRay(point,vector,face,count,distance)
     # bMult represents the brightness multiplier
     if fInter or lInter:
         if lInter:
@@ -194,7 +194,7 @@ def render():
                     # pixel = np.array([(i*tfil.config["cameraSize"][0]/tfil.config["resolution"][0])+(-0.5*i*tfil.config["cameraSize"][0]/tfil.config["resolution"][0])+((x/tfil.config["subRays"][0])*(tfil.config["cameraSize"][0]/tfil.config["resolution"][0])),0,(j*tfil.config["cameraSize"][1]/tfil.config["resolution"][1])+(-0.5*j*tfil.config["cameraSize"][1]/tfil.config["resolution"][1])+((y/tfil.config["subRays"][1])*(tfil.config["cameraSize"][1]/tfil.config["resolution"][1]))])
                     pixel = np.array([tfil.config["cameraSize"][0]/tfil.config["resolution"][0]*(i/2+x/tfil.config["subRays"][0]),0,tfil.config["cameraSize"][1]/tfil.config["resolution"][1]*(j/2+y/tfil.config["subRays"][1])])
                     rayVector = np.subtract(pixel,focalPoint)
-                    ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector),False)
+                    ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector))
                     subPixels += ray[0]*tfil.config["gain"]
                     # subPixels += calcLightIntensity(ray[0],ray[1])*tfil.config["gain"]
                     # subPixels += ray[0]*tfil.["gain"]

@@ -21,7 +21,7 @@ def objScale(coords,scalar):
 def objAdjustVertex(coords,fn):
     newCoords = objTranslate(objScale(objRotate(coords,tfil.config["objRotate"][fn]),tfil.config["objScale"][fn]),tfil.config["objTranslate"][fn])
     return(newCoords)
-
+l=[0,0]
 # Loads STLs unpacking the triangle vertices stored as binary data.
 def loadBinarySTLs(filenames):
     global numFaces
@@ -76,6 +76,7 @@ def loadLightSources(filename):
     return(lights)
 # Test whether a point is in the bounds of a face triangle
 def testInBounds(face,point):
+    global l
     # Calculate minimum distances of point to lines AB, BC, CA
     a = face[1]
     b = face[2]
@@ -96,6 +97,11 @@ def testInBounds(face,point):
         # print ("Zero division error: ray is parallel to a face plane")
         return(False)
     # o = add(a,(ai)*(numerator/denominator))
+    if numerator==0:
+        l[0]+=1
+        print(l)
+    else:
+        l[1]+=1
     p = (ai)*(numerator/denominator)
     o = [
         a[0]+p[0],
