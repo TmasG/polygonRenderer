@@ -64,7 +64,10 @@ def rotate(A,B,theta):
     # Function to rotate vector A around vector B by angle theta:
     # Code:
     # Normalising  B:
-    B = B/np.linalg.norm(B)
+    bMag = np.linalg.norm(B)
+    if bMag < 10**(-1*np.tfil["decimalAccuracy"]):
+        print("bMag=0")
+    B = B/bMag
     vec = np.add(np.add(np.multiply(np.cos(theta),A),np.multiply(np.sin(theta),np.cross(B,A))),np.multiply(np.dot(B,A)*(1-np.cos(theta)),B))
     return(vec)
 def reflectRay(point,vector,face,count,distance):
