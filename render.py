@@ -106,15 +106,15 @@ def reflectRay(point,vector,face,count):
             glossMults += mult[0]*tfil.config["surfaceGlossyness"]*multiplier
         # Calculate average of all children
         gloss = calcLightIntensity(diffMults/tfil.config["diffuseChildren"],mult[1])
-
     diff = 0
     if tfil.config["diffuseChildren"][0] !=0 and tfil.config["diffuseChildren"][1] != 0:
         diffMults = 0
-        if N[2] == 0:
-            C = [0,0,1]
+        if N[0] == 0:
+            C = np.array([1,0,0])
         else:
-            mag = np.sqrt(N[0]*N[0]+N[1]*N[1])
-            C = np.array([N[1],N[0],0])
+            C = np.array([N[1],-1*N[0],0])
+            if np.linalg.norm(C) == 0 :
+                print("120 C mag = 0",N)
         for n in range(tfil.config["diffuseChildren"][0]):
             theta = (n+0.5)*2*np.pi/tfil.config["diffuseChildren"][0]
             # Rotate normal around perpendicular vector to normal
@@ -139,8 +139,6 @@ def reflectRay(point,vector,face,count):
 def calcLightIntensity(power,distance):
     if power == 0:
         return 0
-    if distance == 0:
-        print("Distance=0", power)
     return(power/(4*np.pi*distance**2))
     
 def simulateRay(point, vector, count):
