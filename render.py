@@ -65,26 +65,26 @@ def rotate(A,B,theta):
     # Code:
     # Normalising  B:
     bMag = np.linalg.norm(B)
-    if bMag < 10**(-1*np.tfil["decimalAccuracy"]):
+    if bMag < 10**(-1*tfil.config["decimalAccuracy"]):
         print("bMag=0")
     B = B/bMag
     vec = np.add(np.add(np.multiply(np.cos(theta),A),np.multiply(np.sin(theta),np.cross(B,A))),np.multiply(np.dot(B,A)*(1-np.cos(theta)),B))
     return(vec)
-def reflectRay(point,vector,face,count,distance):
+def reflectRay(point,vector,face,count):
     N = face[0][0]
     d = face[0][4][0]
     I = face[2]
     A = np.subtract(I,vector)
     M = np.add(A,((d-(A[0]*N[0]+A[1]*N[1]+A[2]*N[2]))/(N[0]*N[0]+N[1]*N[1]+N[2]*N[2]))*N)
     V = np.add(I,np.subtract(A,2*M))
+    spec = 0
     specMults = 0
     # For each Specular ray
     # Lambert cosine law
     lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
     # Recursively simulate the ray
-    mult = simulateRay(I, V, count+1,distance)
+    mult = simulateRay(I, V, count+1)
     # Accounting for surface reflectivity and lambert cosine law
-    distance += mult[1]
     # Specular Component
     specMults += mult[0]*tfil.config["surfaceReflectivity"]
     # Difuse Component
@@ -100,7 +100,7 @@ def reflectRay(point,vector,face,count,distance):
             V = N
             multiplier = 0
             # Recursively simulate the ray
-            mult = simulateRay(I, V, count+1,distance)
+            mult = simulateRay(I, V, count+1)
             # Difuse Component
             # Accounting for surface reflectivity and lambert cosine law
             glossMults += mult[0]*tfil.config["surfaceGlossyness"]*multiplier
@@ -127,19 +127,23 @@ def reflectRay(point,vector,face,count,distance):
                 V = rotate(vec,N,alpha)
                 lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
                 # Recursively simulate the ray
-                mult = simulateRay(I, V, count+1,distance)
+                mult = simulateRay(I, V, count+1)
                 # Diffuse Component
                 # Accounting for surface reflectivity and lambert cosine law
                 diffMults += calcLightIntensity(mult[0]*tfil.config["surfaceDiffusivity"]*lambert,mult[1])
         # Calculate average of all children
         diff = diffMults/(tfil.config["diffuseChildren"][0]*tfil.config["diffuseChildren"][1])
     fMult = spec+gloss+diff
-    return(fMult,distance)
+    return(fMult)
 
 def calcLightIntensity(power,distance):
+    if power == 0:
+        return 0
+    if distance == 0:
+        print("Distance=0", power)
     return(power/(4*np.pi*distance**2))
     
-def simulateRay(point, vector, count,distance):
+def simulateRay(point, vector, count):
     # Terminate ray if too old?
     if count > tfil.config["maxBounces"]:
         return(0,0)
@@ -156,31 +160,31 @@ def simulateRay(point, vector, count,distance):
     fInter = len(faceInters) != 0
     if len(faceInters) != 0:
         face = firstIntersection(point, faceInters)
-        fMult = reflectRay(point,vector,face,count,distance)
+        fMult = reflectRay(point,vector,face,count)
     # bMult represents the brightness multiplier
     if fInter or lInter:
         if lInter:
             if fInter:
                 if face[1] < light[1]:
                     # Face in front
-                    bMult = fMult[0]
-                    distance += fMult[1]
+                    bMult = fMult
+                    distance = face[1]
                 else:
                     # Light in front
                     bMult = light[0][4][1]
-                    distance += light[1]
+                    distance = light[1]
             else:
                 # Just light
                 bMult = light[0][4][1]
-                distance += light[1]
+                distance = light[1]
         else:
             # Just face
-            bMult = fMult[0]
-            distance += fMult[1]
+            bMult = fMult
+            distance = face[1]
     else:
         # No intersections
         bMult = 0
-        # print("a")
+        distance = 0
     return(bMult,distance)
     
 def render():
@@ -197,10 +201,8 @@ def render():
                     # pixel = np.array([(i*tfil.config["cameraSize"][0]/tfil.config["resolution"][0])+(-0.5*i*tfil.config["cameraSize"][0]/tfil.config["resolution"][0])+((x/tfil.config["subRays"][0])*(tfil.config["cameraSize"][0]/tfil.config["resolution"][0])),0,(j*tfil.config["cameraSize"][1]/tfil.config["resolution"][1])+(-0.5*j*tfil.config["cameraSize"][1]/tfil.config["resolution"][1])+((y/tfil.config["subRays"][1])*(tfil.config["cameraSize"][1]/tfil.config["resolution"][1]))])
                     pixel = np.array([tfil.config["cameraSize"][0]/tfil.config["resolution"][0]*(i/2+x/tfil.config["subRays"][0]),0,tfil.config["cameraSize"][1]/tfil.config["resolution"][1]*(j/2+y/tfil.config["subRays"][1])])
                     rayVector = np.subtract(pixel,focalPoint)
-                    ray = simulateRay(focalPoint,rayVector,0,np.linalg.norm(rayVector))
+                    ray = simulateRay(focalPoint,rayVector,0)
                     subPixels += ray[0]*tfil.config["gain"]
-                    # subPixels += calcLightIntensity(ray[0],ray[1])*tfil.config["gain"]
-                    # subPixels += ray[0]*tfil.["gain"]
             pixels[i][j] = 255*subPixels/(tfil.config["subRays"][0])
         STLProcess.times[0] = time.time()-a
         print(i, str(STLProcess.times))
@@ -219,22 +221,3 @@ for i in pixels:
             count+=1
 print(count)
 saveImage(pixels)
-
-# Todo:
-# still need to do distribution and lambert
-
-
-# Debugging:
-# if (i == 23 and j == 3) or (i==24 and j==0) or (i==25 and j ==3):
-    # print(pixel, rayVector, ray, pixels[23][3],subPixels)
-
-# Result:
-
-# Erroneously black
-# [11.5  0.   1.5] [ 11.5 100.    1.5] (0.0, 402.68101519689253) 0.0 0.0
-
-# Normal black:
-# [12.  0.  0.] [ 12. 100.   0.] (0, 100.71742649611338) 0.0 0.0
-
-# Normal white:
-# [12.5  0.   1.5] [ 12.5 100.    1.5] (3000000.0, 634.5512429875821) 0.0 0.8300533908607891

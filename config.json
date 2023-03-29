@@ -10,7 +10,7 @@
 "surfaceReflectivity":1,
 "surfaceGlossyness":0,
 "surfaceDiffusivity":0,
-"maxBounces":10,
+"maxBounces":3,
 "gain":1.05,
 "renderType":"perspective",
 "decimalAccuracy":4,
