@@ -6,7 +6,7 @@
 "focalPoint":[0,-100,0],
 "glossyChildren":0,
 "diffuseChildren":[3,3],
-"subRays":[2,2],
+"subRays":[1,1],
 "surfaceReflectivity":1,
 "surfaceGlossyness":0,
 "surfaceDiffusivity":0.4,
