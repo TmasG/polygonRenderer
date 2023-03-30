@@ -124,8 +124,11 @@ def reflectRay(point,vector,face,count):
                 # For each child ray
                 # Varying direction of child rays
                 # Rotate around  normal
+                # Lambert is briken, mby needs to be recalculated for 3d?
                 V = rotate(vec,N,alpha)
+                print((V[0]*N[0]+V[1]*N[1]+V[2]*N[2]),(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2]))))
                 lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
+                print(lambert)
                 # Recursively simulate the ray
                 mult = simulateRay(I, V, count+1)
                 # Diffuse Component
