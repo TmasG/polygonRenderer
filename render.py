@@ -81,7 +81,12 @@ def reflectRay(point,vector,face,count):
     specMults = 0
     # For each Specular ray
     # Lambert cosine law
-    lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
+    lambertNum = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])
+    if lambertNum == 0:
+        lambert = 0
+    else:
+        lambertDenom = np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2]))
+        lambert = lambertNum/lambertDenom
     # Recursively simulate the ray
     mult = simulateRay(I, V, count+1)
     # Accounting for surface reflectivity and lambert cosine law
@@ -126,9 +131,8 @@ def reflectRay(point,vector,face,count):
                 # Rotate around  normal
                 # Lambert is briken, mby needs to be recalculated for 3d?
                 V = rotate(vec,N,alpha)
-                print((V[0]*N[0]+V[1]*N[1]+V[2]*N[2]),(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2]))))
                 lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
-                print(lambert)
+                # print(lambert)
                 # Recursively simulate the ray
                 mult = simulateRay(I, V, count+1)
                 # Diffuse Component
