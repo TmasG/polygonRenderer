@@ -21,7 +21,6 @@ def objScale(coords,scalar):
 def objAdjustVertex(coords,fn):
     newCoords = objTranslate(objScale(objRotate(coords,tfil.config["objRotate"][fn]),tfil.config["objScale"][fn]),tfil.config["objTranslate"][fn])
     return(newCoords)
-l=[0,0]
 # Loads STLs unpacking the triangle vertices stored as binary data.
 def loadBinarySTLs(filenames):
     global numFaces
@@ -75,67 +74,63 @@ def loadLightSources(filename):
         # Where lights[4][1] is the light power
     return(lights)
 # Test whether a point is in the bounds of a face triangle
-def testInBounds(face,point):
-    global l
+def testInBounds(face,point,acc):
     # Calculate minimum distances of point to lines AB, BC, CA
     a = face[1]
     b = face[2]
     c = face[3] 
     i = point
-    ab = np.subtract(b,a)
-    ai = np.subtract(i,a)
-    bc = np.subtract(c,b)
-    # O is Where AI meets BC (Figure 3.1.1.7)
-    # numerator = dot(ai,ab)*dot(bc,bc)-dot(bc,ai)*dot(ab,bc)
-    numerator = (ai[0]*ab[0]+ai[1]*ab[1]+ai[2]*ab[2])*(bc[0]*bc[0]+bc[1]*bc[1]+bc[2]*bc[2])-(bc[0]*ai[0]+bc[1]*ai[1]+bc[2]*ai[2])*(ab[0]*bc[0]+ab[1]*bc[1]+ab[2]*bc[2])
+    ab = [b[0]-a[0],
+        b[1]-a[1],
+        b[2]-a[2]]
+    ai = [i[0]-a[0],
+        i[1]-a[1],
+        i[2]-a[2]]
+    bc = [c[0]-b[0],
+        c[1]-b[1],
+        c[2]-b[2]]
     AICrossBC = [
         ai[1]*bc[2]-ai[2]*bc[1],
         ai[2]*bc[0]-ai[0]*bc[2],
         ai[0]*bc[1]-ai[1]*bc[0]]
     denominator = AICrossBC[0]*AICrossBC[0]+AICrossBC[1]*AICrossBC[1]+AICrossBC[2]*AICrossBC[2]
-    if 0 == denominator:
+    if denominator == 0:
         # print ("Zero division error: ray is parallel to a face plane")
         return(False)
-    # o = add(a,(ai)*(numerator/denominator))
-    if numerator==0:
-        l[0]+=1
-        print(l)
-    else:
-        l[1]+=1
-    p = (ai)*(numerator/denominator)
-    o = [
-        a[0]+p[0],
-        a[1]+p[1],
-        a[2]+p[2]]
+    numerator = (ai[0]*ab[0]+ai[1]*ab[1]+ai[2]*ab[2])*(bc[0]*bc[0]+bc[1]*bc[1]+bc[2]*bc[2])-(bc[0]*ai[0]+bc[1]*ai[1]+bc[2]*ai[2])*(ab[0]*bc[0]+ab[1]*bc[1]+ab[2]*bc[2])
+    if numerator == 0:
+        print("numerator=0")
+    m = numerator/denominator
+    p = [ai[0]*m,
+        ai[1]*m,
+        ai[2]*m]
     # Lambda for location of O on line BC (Figure 3.1.1.7)
-    if b[0]!=c[0]:
-        OlamBC = (o[0]-b[0])/(c[0]-b[0])
-    elif b[1]!=c[1]:
+    if not bc[0]==0:
+        OlamBC = (a[0]+p[0]-b[0])/bc[0]
+    elif not bc[1]==0:
         # print ("Zero division error: Bx==Cx")
-        OlamBC = (o[1]-b[1])/(c[1]-b[1])
-    elif b[2]!=c[2]:
+        OlamBC = (a[1]+p[1]-b[1])/bc[1]
+    elif not bc[2]==0:
         # print ("Zero division error: By==Cy")
-        OlamBC = (o[2]-b[2])/(c[2]-b[2])
+        OlamBC = (a[2]+p[2]-b[2])/bc[2]
     else:
         print ("Zero division error: Coordinates B and C are the same")
         return(False)
     # Mew for location of I on line AO (Figure 3.1.1.7)
-    if p[0]!=0:
-        ImewAO = (i[0]-a[0])/(p[0])
-    elif p[1]!=0:
-        # print ("Zero division error: Ox==Ax")
-        ImewAO = (i[1]-a[1])/(p[1])
-    elif p[2]!=0:
-        # print ("Zero division error: Oy==Ay")
-        ImewAO = (i[2]-a[2])/(p[2])
+    if not m==0:
+        ImewAO = acc/m
     else:
-        print ("Zero division error: Coordinates O and A are the same so P=0")
-        return(False)
+        print ("Zero division error: Coordinates O and A are the same so P=0",a,i)
+        ImewAO = 0
+        # return(False)
     # Is O is in bounds of BC and I is in bounds of AO
-    acc = tfil.config["decimalAccuracy"]
-    truOlamBC = OlamBC//(10**-acc)*10**-acc
-    truImewAO = ImewAO//(10**-acc)*10**-acc
+    truOlamBC = (OlamBC//acc)*acc
+    truImewAO = (ImewAO//acc)
     result = 0 <= truOlamBC and truOlamBC <= 1 and 0 <= truImewAO and truImewAO < 1
     return(result)
 faces = loadBinarySTLs(tfil.config["stlFiles"])
 lights = loadLightSources(tfil.config["lightSources"])
+if tfil.config["diffuseChildren"][0]%2==0:
+    posHalf = 0.5
+else:
+    posHalf = 0

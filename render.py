@@ -35,29 +35,44 @@ def switchXY(pixels):
     return(newPixels)
 
 def firstIntersection(point, inters):
-    minInterFace = inters[0][0]
-    inter = inters[0][1]
+    minInter = inters[0]
+    minInterFace = minInter[0]
+    inter = minInter[1]
     # Ịnitialising distance as first distance
-    minDistance = np.linalg.norm(np.subtract(point, inters[0][1]))
+    minDistance = np.linalg.norm(np.subtract(point, inter))
     # For each intersection compare the distance to the previous smallest distance
-    for m in range(len(inters)):
-        distance = np.linalg.norm(np.subtract(point, inters[m][1]))
+    for m in inters:
+        distance = np.linalg.norm(np.subtract(point, m[1]))
         if distance < minDistance:
-            minInterFace = inters[m][0]
-            inter = inters[m][1]
-        minDistance = distance
+            minInterFace = m[0]
+            inter = m[1]
+            minDistance = distance
     return([minInterFace,minDistance,inter])
 
 def testForIntersections(point,vector,faces,facesLength):
     inters = []
-    TimeA = time.time()
+    acc = 0.1**tfil.config["decimalAccuracy"]
+    # For each face in the STL
     for l in range(facesLength):
-        intersection = lineFaceInter(point,vector,faces[l])
-        # If there is an intersection and said intersection is in front of the ray
-        if intersection[0] and intersection[2]>10**(-1*tfil.config["decimalAccuracy"]):
-            if STLProcess.testInBounds(faces[l],intersection[1]):
-                # If intersection is valid
-                inters.append([faces[l],intersection[1]])
+        face = faces[l]
+        N = face[0]
+        NdotV = N[0]*vector[0]+N[1]*vector[1]+N[2]*vector[2]
+        #  If there is an intersection
+        if not (NdotV == 0):
+            # x = (d-dot(N,point))/(dot(N,vector))
+            x = (face[4][0]-(N[0]*point[0]+N[1]*point[1]+N[2]*point[2]))/NdotV
+            r = [point[0] + vector[0] * x,
+                point[1] + vector[1] * x,
+                point[2] + vector[2] * x]
+            # If the intersection is in front of the ray origin
+            if x>acc:
+                if STLProcess.testInBounds(face,r,acc):
+                    # If intersection is valid
+                    inters.append([face,r])
+        # else:
+            # print("N perpendicular to V", str(N), str(vector))
+            # Cross section of plane from perspective of ray is 0 so no interaction
+        # STLProcess.times[1] += TimeC-TimeB
     return(inters)
 
 def rotate(A,B,theta):
@@ -121,7 +136,7 @@ def reflectRay(point,vector,face,count):
             if np.linalg.norm(C) == 0 :
                 print("120 C mag = 0",N)
         for n in range(tfil.config["diffuseChildren"][0]):
-            theta = (n+0.5)*2*np.pi/tfil.config["diffuseChildren"][0]
+            theta = (n+STLProcess.posHalf)*2*np.pi/tfil.config["diffuseChildren"][0]
             # Rotate normal around perpendicular vector to normal
             vec = np.add(rotate(N,C,theta), N)
             for m in range(tfil.config["diffuseChildren"][1]):
@@ -205,7 +220,9 @@ def render():
                 for y in range(tfil.config["subRays"][1]):
                     # pixel = np.array([(i*tfil.config["cameraSize"][0]/tfil.config["resolution"][0])+(-0.5*i*tfil.config["cameraSize"][0]/tfil.config["resolution"][0])+((x/tfil.config["subRays"][0])*(tfil.config["cameraSize"][0]/tfil.config["resolution"][0])),0,(j*tfil.config["cameraSize"][1]/tfil.config["resolution"][1])+(-0.5*j*tfil.config["cameraSize"][1]/tfil.config["resolution"][1])+((y/tfil.config["subRays"][1])*(tfil.config["cameraSize"][1]/tfil.config["resolution"][1]))])
                     pixel = np.array([tfil.config["cameraSize"][0]/tfil.config["resolution"][0]*(i/2+x/tfil.config["subRays"][0]),0,tfil.config["cameraSize"][1]/tfil.config["resolution"][1]*(j/2+y/tfil.config["subRays"][1])])
-                    rayVector = np.subtract(pixel,focalPoint)
+                    rayVector = [pixel[0]-focalPoint[0],
+                        pixel[1]-focalPoint[1],
+                        pixel[2]-focalPoint[2]]
                     ray = simulateRay(focalPoint,rayVector,0)
                     subPixels += ray[0]*tfil.config["gain"]
             pixels[i][j] = 255*subPixels/(tfil.config["subRays"][0])
