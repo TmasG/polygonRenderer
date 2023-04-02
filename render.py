@@ -127,34 +127,34 @@ def reflectRay(point,vector,face,count):
         # Calculate average of all children
         gloss = calcLightIntensity(diffMults/tfil.config["diffuseChildren"],mult[1])
     diff = 0
-    if tfil.config["diffuseChildren"][0] !=0 and tfil.config["diffuseChildren"][1] != 0:
-        diffMults = 0
-        if N[0] == 0:
-            C = np.array([1,0,0])
-        else:
-            C = np.array([N[1],-1*N[0],0])
-            if np.linalg.norm(C) == 0 :
-                print("120 C mag = 0",N)
-        for n in range(tfil.config["diffuseChildren"][0]):
-            theta = (n+STLProcess.posHalf)*2*np.pi/tfil.config["diffuseChildren"][0]
-            # Rotate normal around perpendicular vector to normal
-            vec = np.add(rotate(N,C,theta), N)
-            for m in range(tfil.config["diffuseChildren"][1]):
-                alpha = (m+0.5)*np.pi/tfil.config["diffuseChildren"][1]
-                # For each child ray
-                # Varying direction of child rays
-                # Rotate around  normal
-                # Lambert is briken, mby needs to be recalculated for 3d?
-                V = rotate(vec,N,alpha)
-                lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
-                # print(lambert)
-                # Recursively simulate the ray
-                mult = simulateRay(I, V, count+1)
-                # Diffuse Component
-                # Accounting for surface reflectivity and lambert cosine law
-                diffMults += calcLightIntensity(mult[0]*tfil.config["surfaceDiffusivity"]*lambert,mult[1])
-        # Calculate average of all children
-        diff = diffMults/(tfil.config["diffuseChildren"][0]*tfil.config["diffuseChildren"][1])
+    if count <= tfil.config["maxDiffDepth"]:
+        if tfil.config["diffuseChildren"][0] !=0 and tfil.config["diffuseChildren"][1] != 0:
+            diffMults = 0
+            if N[0] == 0:
+                C = np.array([1,0,0])
+            else:
+                C = np.array([N[1],-1*N[0],0])
+                if np.linalg.norm(C) == 0 :
+                    print("120 C mag = 0",N)
+            for n in range(tfil.config["diffuseChildren"][0]):
+                theta = (n+STLProcess.posHalf)*2*np.pi/tfil.config["diffuseChildren"][0]
+                # Rotate normal around perpendicular vector to normal
+                vec = np.add(rotate(N,C,theta), N)
+                for m in range(tfil.config["diffuseChildren"][1]):
+                    alpha = (m+0.5)*np.pi/tfil.config["diffuseChildren"][1]
+                    # For each child ray
+                    # Varying direction of child rays
+                    # Rotate around  normal
+                    V = rotate(vec,N,alpha)
+                    lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
+                    # print(lambert)
+                    # Recursively simulate the ray
+                    mult = simulateRay(I, V, count+1)
+                    # Diffuse Component
+                    # Accounting for surface reflectivity and lambert cosine law
+                    diffMults += calcLightIntensity(mult[0]*tfil.config["surfaceDiffusivity"]*lambert,mult[1])
+            # Calculate average of all children
+            diff = diffMults/(tfil.config["diffuseChildren"][0]*tfil.config["diffuseChildren"][1])
     fMult = spec+gloss+diff
     return(fMult)
 

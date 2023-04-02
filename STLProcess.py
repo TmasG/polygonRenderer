@@ -6,20 +6,23 @@ import time
 times = [0,0,0,0]
 tfil.getConfig()
 # Adjusts scale of 3d object coordinates
-def objRotate(coords,rots):
+def rotate(coords,rots):
     x = np.array([1,0,0,0,math.cos(rots[0]),-math.sin(rots[0]),0,math.sin(rots[0]),math.cos(rots[0])]).reshape(3,3)
     y = np.array([math.cos(rots[1]),0,math.sin(rots[1]),0,1,0,-math.sin(rots[1]),0,math.cos(rots[1])]).reshape(3,3)
     z = np.array([math.cos(rots[2]),-math.sin(rots[2]),0,math.sin(rots[2]),math.cos(rots[2]),0,0,0,1]).reshape(3,3)
     newCoords = np.dot(z,np.dot(y,np.dot(x,coords)))
     return(newCoords)
-def objTranslate(coords,translator):
+def translate(coords,translator):
     newCoords=np.add(coords,translator)
     return(newCoords)
-def objScale(coords,scalar):
+def scale(coords,scalar):
     newCoords = np.multiply(coords,scalar)
     return(newCoords)
 def objAdjustVertex(coords,fn):
-    newCoords = objTranslate(objScale(objRotate(coords,tfil.config["objRotate"][fn]),tfil.config["objScale"][fn]),tfil.config["objTranslate"][fn])
+    newCoords = translate(scale(rotate(coords,tfil.config["objRotate"][fn]),tfil.config["objScale"][fn]),tfil.config["objTranslate"][fn])
+    return(newCoords)
+def lightAdjustVertex(coords):
+    newCoords = translate(scale(rotate(coords,tfil.config["lightRotate"]),tfil.config["lightScale"]),tfil.config["lightTranslate"])
     return(newCoords)
 # Loads STLs unpacking the triangle vertices stored as binary data.
 def loadBinarySTLs(filenames):
@@ -62,6 +65,8 @@ def loadLightSources(filename):
     numLights = len(lights)
     print("Lights:")
     for i in range(len(lights)):
+        for j in range(4):
+            lights[i][j] = lightAdjustVertex(lights[i][j])
         # Light face Normal
         AB = np.subtract(lights[i][1],lights[i][2])
         AC = np.subtract(lights[i][1],lights[i][3])
