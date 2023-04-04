@@ -3,7 +3,7 @@ import struct
 import math
 import tfil
 import time
-times = [0,0,0,0]
+columnTime = 0
 tfil.getConfig()
 # Adjusts scale of 3d object coordinates
 def rotate(coords,rots):

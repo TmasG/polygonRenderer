@@ -72,7 +72,6 @@ def testForIntersections(point,vector,faces,facesLength):
         # else:
             # print("N perpendicular to V", str(N), str(vector))
             # Cross section of plane from perspective of ray is 0 so no interaction
-        # STLProcess.times[1] += TimeC-TimeB
     return(inters)
 
 def rotate(A,B,theta):
@@ -80,7 +79,7 @@ def rotate(A,B,theta):
     # Code:
     # Normalising  B:
     bMag = np.linalg.norm(B)
-    if bMag < 10**(-1*tfil.config["decimalAccuracy"]):
+    if bMag < 10 **(-1*tfil.config["decimalAccuracy"]):
         print("bMag=0")
     B = B/bMag
     vec = np.add(np.add(np.multiply(np.cos(theta),A),np.multiply(np.sin(theta),np.cross(B,A))),np.multiply(np.dot(B,A)*(1-np.cos(theta)),B))
@@ -145,7 +144,6 @@ def reflectRay(point,vector,face,count):
                     # Rotate around  normal
                     V = rotate(vec,N,alpha)
                     lambert = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])/(np.sqrt((V[0]*V[0]+V[1]*V[1]+V[2]*V[2])*(N[0]*N[0]+N[1]*N[1]+N[2]*N[2])))
-                    # print(lambert)
                     # Recursively simulate the ray
                     mult = simulateRay(I, V, count+1)
                     # Diffuse Component
@@ -211,7 +209,7 @@ def render():
     focalPoint = np.array(tfil.config["focalPoint"])
     for i in range(tfil.config["resolution"][0]):
         a = time.time()
-        STLProcess.times = [0,0,0,0]
+        STLProcess.columnTime = 0
         for j in range(tfil.config["resolution"][1]):
             subPixels = 0
             for x in range(tfil.config["subRays"][0]):
@@ -224,8 +222,8 @@ def render():
                     ray = simulateRay(focalPoint,rayVector,0)
                     subPixels += ray[0]*tfil.config["gain"]
             pixels[i][j] = 255*subPixels/(tfil.config["subRays"][0])
-        STLProcess.times[0] = time.time()-a
-        print(i, str(STLProcess.times))
+        STLProcess.columnTime = time.time()-a
+        print("Column:",i, "Previous Column Render Time:", np.round(STLProcess.columnTime,tfil.config["decimalAccuracy"]), "seconds")
     # Ạdding a test pixel halfway along the x and y axes
     # pixels[int(tfil.config["resolution"][0]/2)-1][0] = 255
     return(switchXY(pixels))
@@ -233,11 +231,10 @@ def render():
 a = time.time()
 pixels = render()
 b = time.time()
-print(b-a)
+print("Total Render Time:", np.round(b-a,tfil.config["decimalAccuracy"]), "seconds")
 count = 0
 for i in pixels:
     for j in i:
         if j==1:
             count+=1
-print(count)
 saveImage(pixels)
