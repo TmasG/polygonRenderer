@@ -20,8 +20,7 @@ def lineFaceInter(point,vector,face):
         x = (face[4][0]-(N[0]*P[0]+N[1]*P[1]+N[2]*P[2]))/NdotV
         r = np.add(P,V*x)
     else:
-        # print("N perpendicular to V", str(N), str(V))
-        #  Fix this, this shouble reflect back the ray (i think)
+        # N perpendicular to V
         x = 0
         r = [0,0,0]
     # returns if there is an intersection and the location and distance if so
@@ -70,13 +69,12 @@ def testForIntersections(point,vector,faces,facesLength):
                     # If intersection is valid
                     inters.append([face,r])
         # else:
-            # print("N perpendicular to V", str(N), str(vector))
+            # N perpendicular to V
             # Cross section of plane from perspective of ray is 0 so no interaction
     return(inters)
 
 def rotate(A,B,theta):
     # Function to rotate vector A around vector B by angle theta:
-    # Code:
     # Normalising  B:
     bMag = np.linalg.norm(B)
     if bMag < 10 **(-1*tfil.config["decimalAccuracy"]):
@@ -91,9 +89,9 @@ def reflectRay(point,vector,face,count):
     A = np.subtract(I,vector)
     M = np.add(A,((d-(A[0]*N[0]+A[1]*N[1]+A[2]*N[2]))/(N[0]*N[0]+N[1]*N[1]+N[2]*N[2]))*N)
     V = np.add(I,np.subtract(A,2*M))
+    # For the specular ray:
     spec = 0
     specMults = 0
-    # For each Specular ray
     # Lambert cosine law
     lambertNum = (V[0]*N[0]+V[1]*N[1]+V[2]*N[2])
     if lambertNum == 0:
@@ -109,22 +107,7 @@ def reflectRay(point,vector,face,count):
     # Difuse Component
     specMults += mult[0]*tfil.config["surfaceDiffusivity"]*lambert
     spec = calcLightIntensity(specMults,mult[1])
-    gloss = 0
-    if tfil.config["glossyChildren"] !=0:
-        glossMults = 0
-        for i in range(tfil.config["glossyChildren"]):
-            # For each child ray
-            # Varying direction of child rays
-            # Should vary around the normal
-            V = N
-            multiplier = 0
-            # Recursively simulate the ray
-            mult = simulateRay(I, V, count+1)
-            # Difuse Component
-            # Accounting for surface reflectivity and lambert cosine law
-            glossMults += mult[0]*tfil.config["surfaceGlossyness"]*multiplier
-        # Calculate average of all children
-        gloss = calcLightIntensity(diffMults/tfil.config["diffuseChildren"],mult[1])
+    # For the diffuse ray:
     diff = 0
     if count <= tfil.config["maxDiffDepth"]:
         if tfil.config["diffuseChildren"][0] !=0 and tfil.config["diffuseChildren"][1] != 0:
@@ -151,7 +134,7 @@ def reflectRay(point,vector,face,count):
                     diffMults += calcLightIntensity(mult[0]*tfil.config["surfaceDiffusivity"]*lambert,mult[1])
             # Calculate average of all children
             diff = diffMults/(tfil.config["diffuseChildren"][0]*tfil.config["diffuseChildren"][1])
-    fMult = spec+gloss+diff
+    fMult = spec+diff
     return(fMult)
 
 def calcLightIntensity(power,distance):
@@ -211,10 +194,10 @@ def render():
         a = time.time()
         STLProcess.columnTime = 0
         for j in range(tfil.config["resolution"][1]):
+            # For each pixel iterate throughd the sub pixels
             subPixels = 0
             for x in range(tfil.config["subRays"][0]):
                 for y in range(tfil.config["subRays"][1]):
-                    # pixel = np.array([(i*tfil.config["cameraSize"][0]/tfil.config["resolution"][0])+(-0.5*i*tfil.config["cameraSize"][0]/tfil.config["resolution"][0])+((x/tfil.config["subRays"][0])*(tfil.config["cameraSize"][0]/tfil.config["resolution"][0])),0,(j*tfil.config["cameraSize"][1]/tfil.config["resolution"][1])+(-0.5*j*tfil.config["cameraSize"][1]/tfil.config["resolution"][1])+((y/tfil.config["subRays"][1])*(tfil.config["cameraSize"][1]/tfil.config["resolution"][1]))])
                     pixel = np.array([tfil.config["cameraSize"][0]/tfil.config["resolution"][0]*(i/2+x/tfil.config["subRays"][0]),0,tfil.config["cameraSize"][1]/tfil.config["resolution"][1]*(j/2+y/tfil.config["subRays"][1])])
                     rayVector = [pixel[0]-focalPoint[0],
                         pixel[1]-focalPoint[1],
@@ -224,8 +207,6 @@ def render():
             pixels[i][j] = 255*subPixels/(tfil.config["subRays"][0])
         STLProcess.columnTime = time.time()-a
         print("Column:",i, "Previous Column Render Time:", np.round(STLProcess.columnTime,tfil.config["decimalAccuracy"]), "seconds")
-    # Ạdding a test pixel halfway along the x and y axes
-    # pixels[int(tfil.config["resolution"][0]/2)-1][0] = 255
     return(switchXY(pixels))
 
 a = time.time()
