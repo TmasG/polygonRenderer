@@ -3,6 +3,8 @@ import STLProcess
 import numpy as np
 import time
 from PIL import Image
+timVal1 = 0
+timVal2 = 0
 def saveImage(pixels):
     img = Image.fromarray(pixels)
     if img.mode != "rgb":
@@ -34,18 +36,20 @@ def switchXY(pixels):
     return(newPixels)
 
 def firstIntersection(point, inters):
+    global timVal1
     minInter = inters[0]
     minInterFace = minInter[0]
     inter = minInter[1]
     # Ịnitialising distance as first distance
-    minDistance = np.linalg.norm(np.subtract(point, inter))
+    minDistanceSq = (point[0]-inter[0])**2+(point[1]-inter[1])**2+(point[2]-inter[2])**2
     # For each intersection compare the distance to the previous smallest distance
     for m in inters:
-        distance = np.linalg.norm(np.subtract(point, m[1]))
-        if distance < minDistance:
+        distanceSq = (point[0]-m[1][0])**2+(point[1]-m[1][1])**2+(point[2]-m[1][2])**2
+        if distanceSq < minDistanceSq:
             minInterFace = m[0]
             inter = m[1]
-            minDistance = distance
+            minDistanceSq = distanceSq
+    minDistance = minDistanceSq**0.5
     return([minInterFace,minDistance,inter])
 
 def testForIntersections(point,vector,faces,facesLength):
@@ -74,12 +78,14 @@ def testForIntersections(point,vector,faces,facesLength):
     return(inters)
 
 def rotate(A,B,theta):
+    global timVal1
+    global timVal2
     # Function to rotate vector A around vector B by angle theta:
     # Normalising  B:
-    bMag = np.linalg.norm(B)
-    if bMag < 10 **(-1*tfil.config["decimalAccuracy"]):
+    bMag = (B[0]**2+B[1]**2+B[2]**2)**0.5
+    B = [B[0]/bMag,B[1]/bMag,B[2]/bMag]
+    if bMag < 0.1**tfil.config["decimalAccuracy"]:
         print("bMag=0")
-    B = B/bMag
     vec = np.add(np.add(np.multiply(np.cos(theta),A),np.multiply(np.sin(theta),np.cross(B,A))),np.multiply(np.dot(B,A)*(1-np.cos(theta)),B))
     return(vec)
 def reflectRay(point,vector,face,count):
@@ -194,7 +200,7 @@ def render():
         a = time.time()
         STLProcess.columnTime = 0
         for j in range(tfil.config["resolution"][1]):
-            # For each pixel iterate throughd the sub pixels
+            # For each pixel iterate through the sub pixels
             subPixels = 0
             for x in range(tfil.config["subRays"][0]):
                 for y in range(tfil.config["subRays"][1]):
@@ -219,3 +225,4 @@ for i in pixels:
         if j==1:
             count+=1
 saveImage(pixels)
+print("time value1:", timVal1, "time value2:", timVal2)
